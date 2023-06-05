@@ -102,6 +102,34 @@ class CrudIntegrationTests {
     }
 
     @Test
+    void testUpdateBlankFields() throws Exception {
+        final TestDTO testDTO = new TestDTO();
+        testDTO.setData("oui");
+
+        MvcResult mvcResult = mockMvc.perform(post(ROUTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gson.toJson(testDTO)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        final TestDTO created = gson.fromJson(mvcResult.getResponse().getContentAsString(), TestDTO.class);
+        created.setData("    ");
+        created.setCreatedAt(null);
+
+        mvcResult = mockMvc.perform(patch(ROUTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gson.toJson(created)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        final TestDTO result = gson.fromJson(mvcResult.getResponse().getContentAsString(), TestDTO.class);
+        assertNotNull(result.getCreatedAt());
+        assertNotEquals(created.getUpdatedAt(), result.getUpdatedAt());
+        assertEquals(created.getId(), result.getId());
+        assertEquals(testDTO.getData(), result.getData());
+    }
+
+    @Test
     void testUpdateBatch() throws Exception {
         final List<TestDTO> list = new ArrayList<>();
 
