@@ -10,12 +10,16 @@ import com.funixproductions.core.crud.services.search.SearchBuilder;
 import com.funixproductions.core.exceptions.ApiBadRequestException;
 import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.exceptions.ApiNotFoundException;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,28 +44,36 @@ public abstract class ApiService<DTO extends ApiDTO,
     @Override
     @Transactional
     public PageDTO<DTO> getAll(@Nullable String page, @Nullable String elemsPerPage, @Nullable String search, @Nullable String sort) {
-        final Specification<ENTITY> specificationSearch = getSpecification(search);
-        final Pageable pageable = getPage(page, elemsPerPage, sort);
-        final Page<DTO> toReturn = repository.findAll(specificationSearch, pageable).map(mapper::toDto);
+        try {
+            final Specification<ENTITY> specificationSearch = getSpecification(search);
+            final Pageable pageable = getPage(page, elemsPerPage, sort);
+            final Page<DTO> toReturn = repository.findAll(specificationSearch, pageable).map(mapper::toDto);
 
-        beforeSendingDTO(toReturn.getContent());
-        return new PageDTO<>(toReturn);
+            beforeSendingDTO(toReturn.getContent());
+            return new PageDTO<>(toReturn);
+        } catch (PersistenceException e) {
+            throw handleOrmException(e);
+        }
     }
 
     @Override
     @NonNull
     @Transactional
     public DTO findById(String id) throws ApiNotFoundException {
-        final Optional<ENTITY> search = repository.findByUuid(id);
+        try {
+            final Optional<ENTITY> search = repository.findByUuid(id);
 
-        if (search.isPresent()) {
-            final ENTITY entity = search.get();
-            final DTO response = mapper.toDto(entity);
+            if (search.isPresent()) {
+                final ENTITY entity = search.get();
+                final DTO response = mapper.toDto(entity);
 
-            beforeSendingDTO(Collections.singletonList(response));
-            return response;
-        } else {
-            throw new ApiNotFoundException(String.format(MESSAGE_ENTITY_NOT_FOUND, id));
+                beforeSendingDTO(Collections.singletonList(response));
+                return response;
+            } else {
+                throw new ApiNotFoundException(String.format(MESSAGE_ENTITY_NOT_FOUND, id));
+            }
+        } catch (PersistenceException e) {
+            throw handleOrmException(e);
         }
     }
 
@@ -81,26 +93,30 @@ public abstract class ApiService<DTO extends ApiDTO,
     @Override
     @Transactional
     public List<DTO> create(List<@Valid DTO> request) {
-        this.beforeMappingToEntity(request);
-        final List<ENTITY> entities = new ArrayList<>();
+        try {
+            this.beforeMappingToEntity(request);
+            final List<ENTITY> entities = new ArrayList<>();
 
-        request.forEach(dto -> {
-            final ENTITY actualEnt = mapper.toEntity(dto);
+            request.forEach(dto -> {
+                final ENTITY actualEnt = mapper.toEntity(dto);
 
-            actualEnt.setId(null);
-            actualEnt.setUuid(null);
-            this.afterMapperCall(dto, actualEnt);
-            entities.add(actualEnt);
-        });
+                actualEnt.setId(null);
+                actualEnt.setUuid(null);
+                this.afterMapperCall(dto, actualEnt);
+                entities.add(actualEnt);
+            });
 
-        this.beforeSavingEntity(entities);
-        final List<ENTITY> entitiesSaved = repository.saveAll(entities);
-        this.afterSavingEntity(entitiesSaved);
+            this.beforeSavingEntity(entities);
+            final List<ENTITY> entitiesSaved = repository.saveAll(entities);
+            this.afterSavingEntity(entitiesSaved);
 
-        final List<DTO> toSend = new ArrayList<>();
-        entitiesSaved.forEach(entity -> toSend.add(mapper.toDto(entity)));
-        this.beforeSendingDTO(toSend);
-        return toSend;
+            final List<DTO> toSend = new ArrayList<>();
+            entitiesSaved.forEach(entity -> toSend.add(mapper.toDto(entity)));
+            this.beforeSendingDTO(toSend);
+            return toSend;
+        } catch (PersistenceException e) {
+            throw handleOrmException(e);
+        }
     }
 
     @NonNull
@@ -122,64 +138,76 @@ public abstract class ApiService<DTO extends ApiDTO,
     @Override
     @Transactional
     public List<DTO> update(List<DTO> request) {
-        this.beforeMappingToEntity(request);
+        try {
+            this.beforeMappingToEntity(request);
 
-        final Set<String> ids = new HashSet<>();
-        for (final DTO dto : request) {
-            if (dto.getId() != null) {
-                ids.add(dto.getId().toString());
+            final Set<String> ids = new HashSet<>();
+            for (final DTO dto : request) {
+                if (dto.getId() != null) {
+                    ids.add(dto.getId().toString());
+                }
             }
-        }
-        final Iterable<ENTITY> entities = repository.findAllByUuidIn(ids);
+            final Iterable<ENTITY> entities = repository.findAllByUuidIn(ids);
 
-        DTO actualDto;
-        ENTITY entRequest;
-        for (final ENTITY entity : entities) {
-            actualDto = this.getDTOFromIdInList(request, entity.getUuid());
+            DTO actualDto;
+            ENTITY entRequest;
+            for (final ENTITY entity : entities) {
+                actualDto = this.getDTOFromIdInList(request, entity.getUuid());
 
-            if (actualDto != null)  {
-                entRequest = mapper.toEntity(actualDto);
-                this.afterMapperCall(actualDto, entRequest);
-                entRequest.setId(null);
-                entRequest.setUpdatedAt(Date.from(Instant.now()));
-                mapper.patch(entRequest, entity);
-                this.afterMapperCall(actualDto, entity);
+                if (actualDto != null) {
+                    entRequest = mapper.toEntity(actualDto);
+                    this.afterMapperCall(actualDto, entRequest);
+                    entRequest.setId(null);
+                    entRequest.setUpdatedAt(Date.from(Instant.now()));
+                    mapper.patch(entRequest, entity);
+                    this.afterMapperCall(actualDto, entity);
+                }
             }
+
+            this.beforeSavingEntity(entities);
+            final Iterable<ENTITY> entitiesSaved = repository.saveAll(entities);
+            this.afterSavingEntity(entitiesSaved);
+
+            final List<DTO> toSend = new ArrayList<>();
+            entitiesSaved.forEach(entity -> toSend.add(mapper.toDto(entity)));
+            beforeSendingDTO(toSend);
+            return toSend;
+        } catch (PersistenceException e) {
+            throw handleOrmException(e);
         }
-
-        this.beforeSavingEntity(entities);
-        final Iterable<ENTITY> entitiesSaved = repository.saveAll(entities);
-        this.afterSavingEntity(entitiesSaved);
-
-        final List<DTO> toSend = new ArrayList<>();
-        entitiesSaved.forEach(entity -> toSend.add(mapper.toDto(entity)));
-        beforeSendingDTO(toSend);
-        return toSend;
     }
 
     @Override
     @Transactional
     public void delete(String id) {
-        final Optional<ENTITY> search = repository.findByUuid(id);
+        try {
+            final Optional<ENTITY> search = repository.findByUuid(id);
 
-        if (search.isPresent()) {
-            final ENTITY entity = search.get();
+            if (search.isPresent()) {
+                final ENTITY entity = search.get();
 
-            beforeDeletingEntity(Collections.singletonList(entity));
-            repository.delete(entity);
-        } else {
-            throw new ApiNotFoundException(String.format(MESSAGE_ENTITY_NOT_FOUND, id));
+                beforeDeletingEntity(Collections.singletonList(entity));
+                repository.delete(entity);
+            } else {
+                throw new ApiNotFoundException(String.format(MESSAGE_ENTITY_NOT_FOUND, id));
+            }
+        } catch (PersistenceException e) {
+            throw handleOrmException(e);
         }
     }
 
     @Override
     @Transactional
     public void delete(String... ids) {
-        final Set<String> idList = new HashSet<>(Arrays.asList(ids));
-        final Iterable<ENTITY> search = this.repository.findAllByUuidIn(idList);
+        try {
+            final Set<String> idList = new HashSet<>(Arrays.asList(ids));
+            final Iterable<ENTITY> search = this.repository.findAllByUuidIn(idList);
 
-        beforeDeletingEntity(search);
-        repository.deleteAll(search);
+            beforeDeletingEntity(search);
+            repository.deleteAll(search);
+        } catch (PersistenceException e) {
+            throw handleOrmException(e);
+        }
     }
 
     /**
@@ -222,6 +250,18 @@ public abstract class ApiService<DTO extends ApiDTO,
      * @param entity entity fetched from database.
      */
     public void beforeDeletingEntity(@NonNull Iterable<ENTITY> entity) {
+    }
+
+    private ApiException handleOrmException(final PersistenceException ormException) {
+        if (ormException instanceof EntityNotFoundException) {
+            throw new ApiNotFoundException(String.format("L'entité n'a pas été trouvée. %s", ormException.getMessage()), ormException);
+        } else if (ormException instanceof EntityExistsException) {
+            throw new ApiBadRequestException(String.format("L'entité existe déjà. %s", ormException.getMessage()), ormException);
+        } else if (ormException instanceof ConstraintViolationException) {
+            throw new ApiBadRequestException(String.format("La requête est invalide. %s", ormException.getMessage()), ormException);
+        } else {
+            throw new ApiException(String.format("Une erreur interne est survenue. %s", ormException.getMessage()), ormException);
+        }
     }
 
     private Pageable getPage(final String page, final String elemsPerPage, @Nullable final String sortQuery) {
