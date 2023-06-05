@@ -24,6 +24,7 @@
         <module>exceptions</module>
         <module>test-utils</module>
         <module>tools</module>
+        <module>storage</module>
     </modules>
 
     <properties>
