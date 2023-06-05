@@ -27,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
 
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.*;
 
@@ -155,6 +156,7 @@ public abstract class ApiService<DTO extends ApiDTO,
                 actualDto = this.getDTOFromIdInList(request, entity.getUuid());
 
                 if (actualDto != null) {
+                    checkPatchEmptyVariables(actualDto);
                     entRequest = mapper.toEntity(actualDto);
                     this.afterMapperCall(actualDto, entRequest);
                     entRequest.setId(null);
@@ -250,6 +252,28 @@ public abstract class ApiService<DTO extends ApiDTO,
      * @param entity entity fetched from database.
      */
     public void beforeDeletingEntity(@NonNull Iterable<ENTITY> entity) {
+    }
+
+    private void checkPatchEmptyVariables(final DTO dto) {
+        final Class<? extends ApiDTO> dtoClass = dto.getClass();
+        final Field[] fields = dtoClass.getDeclaredFields();
+
+        String value;
+        for (final Field field : fields) {
+            if (field.getType().equals(String.class)) {
+                try {
+                    field.setAccessible(true);
+                    value = (String) field.get(dto);
+
+                    if (Strings.isBlank(value)) {
+                        field.set(dto, null);
+                    }
+                    field.setAccessible(false);
+                } catch (IllegalAccessException e) {
+                    throw new ApiException("Une erreur interne est survenue lors de la mise à jour de l'entité.", e);
+                }
+            }
+        }
     }
 
     private ApiException handleOrmException(final PersistenceException ormException) {
