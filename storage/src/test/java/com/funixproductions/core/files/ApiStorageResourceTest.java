@@ -14,8 +14,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -54,6 +53,29 @@ class ApiStorageResourceTest {
         assertEquals(fileContent, result.getResponse().getContentAsString());
 
         this.mockMvc.perform(get("/testfile/file/" + UUID.randomUUID()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testDeleteFile() throws Exception {
+        final String fileName = "fileNameTest" + UUID.randomUUID();
+        final String fileExt = "txt";
+        final String fileContent = "test";
+        final MockMultipartFile file = new MockMultipartFile("file", fileName + "." + fileExt, "text/plain", fileContent.getBytes());
+
+        MvcResult result = this.mockMvc.perform(multipart("/testfile/file")
+                        .file(file))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        final TestStorageFileDTO storageFileDTO = jsonHelper.fromJson(result.getResponse().getContentAsString(), TestStorageFileDTO.class);
+        assertEquals(fileName + '.' + fileExt, storageFileDTO.getFileName());
+        assertEquals(fileExt, storageFileDTO.getFileExtension());
+
+        this.mockMvc.perform(delete("/testfile?id=" + storageFileDTO.getId()))
+                .andExpect(status().isOk());
+
+        this.mockMvc.perform(get("/testfile/file/" + storageFileDTO.getId()))
                 .andExpect(status().isNotFound());
     }
 
