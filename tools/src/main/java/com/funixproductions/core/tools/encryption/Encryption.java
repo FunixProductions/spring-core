@@ -1,18 +1,19 @@
 package com.funixproductions.core.tools.encryption;
 
 import com.funixproductions.core.exceptions.ApiException;
+import com.google.common.base.Strings;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.security.*;
 import java.util.Base64;
 
+/**
+ * Class used to encrypt and decrypt data
+ * You need to set the environment variables ENCRYPTION_KEY and ENCRYPTION_IV
+ */
 public abstract class Encryption {
     private static final String ALGORITHM_KEY = "AES";
     private static final String CRYPT_ALGORITHM = "AES/GCM/NoPadding";
@@ -26,8 +27,8 @@ public abstract class Encryption {
     private final byte[] iv;
 
     protected Encryption() {
-        this.key = getKeyFromFile();
-        this.iv = getIvFromFile();
+        this.key = getKeyFromEnv();
+        this.iv = getIvFromEnv();
         this.base64Encoder = Base64.getEncoder();
         this.base64Decoder = Base64.getDecoder();
     }
@@ -66,71 +67,44 @@ public abstract class Encryption {
         }
     }
 
-    private static Key getKeyFromFile() {
-        final Base64.Encoder base64Encoder = Base64.getEncoder();
-        final Base64.Decoder base64Decoder = Base64.getDecoder();
-        final File keyFile = new File("crypt.key");
+    private static Key getKeyFromEnv() {
+        final String keyStringEnv = System.getenv("ENCRYPTION_KEY");
 
-        try {
-            if (!keyFile.exists()) {
-                if (!keyFile.createNewFile()) {
-                    throw new ApiException("Impossible de créer un nouveau fichier d'encryption.");
-                }
-
-                final KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM_KEY);
-                keyGenerator.init(KEY_SIZE);
-                final Key key = keyGenerator.generateKey();
-
-                final String keyString = base64Encoder.encodeToString(key.getEncoded());
-                writeInFile(keyString, keyFile);
-                return key;
-            }
-
-            final String keyString = Files.readString(keyFile.toPath(), StandardCharsets.UTF_8);
-            final byte[] decodedKey = base64Decoder.decode(keyString);
+        if (Strings.isNullOrEmpty(keyStringEnv)) {
+            throw new ApiException("Impossible de récupérer la clé d'encryption de l'environement ENCRYPTION_KEY.");
+        } else {
+            final byte[] decodedKey = Base64.getDecoder().decode(keyStringEnv);
             return new SecretKeySpec(decodedKey, 0, decodedKey.length, ALGORITHM_KEY);
-        } catch (IOException | NoSuchAlgorithmException e)  {
-            throw new ApiException("Une erreur est survenue lors de la création du fichier d'encryption.", e);
         }
     }
 
-    private static byte[] getIvFromFile() {
-        final Base64.Encoder base64Encoder = Base64.getEncoder();
-        final Base64.Decoder base64Decoder = Base64.getDecoder();
-        final File ivFile = new File("crypt.iv");
+    private static byte[] getIvFromEnv() {
+        final String ivStringEnv = System.getenv("ENCRYPTION_IV");
 
+        if (Strings.isNullOrEmpty(ivStringEnv)) {
+            throw new ApiException("Impossible de récupérer le vecteur d'initialisation de l'environement ENCRYPTION_IV.");
+        } else {
+            return Base64.getDecoder().decode(ivStringEnv);
+        }
+    }
+
+    public static String generateNewEncryptionKey() {
         try {
-            if (!ivFile.exists()) {
-                if (!ivFile.createNewFile()) {
-                    throw new ApiException("Impossible de créer un nouveau fichier d'encryption.");
-                }
+            final KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM_KEY);
+            keyGenerator.init(KEY_SIZE);
+            final Key key = keyGenerator.generateKey();
 
-                final SecureRandom secureRandom = new SecureRandom();
-                final byte[] iv = new byte[IV_LENGTH_BYTE];
-                secureRandom.nextBytes(iv);
-
-                final String ivString = base64Encoder.encodeToString(iv);
-                writeInFile(ivString, ivFile);
-                return iv;
-            }
-
-            final String ivString = Files.readString(ivFile.toPath(), StandardCharsets.UTF_8);
-            return base64Decoder.decode(ivString);
-        } catch (IOException e)  {
-            throw new ApiException("Une erreur est survenue lors de la création du fichier d'encryption.", e);
+            return Base64.getEncoder().encodeToString(key.getEncoded());
+        } catch (NoSuchAlgorithmException e)  {
+            throw new ApiException("Une erreur est survenue lors de la création d'une clé d'encryption.", e);
         }
     }
 
-    private static void writeInFile(final String data, final File file) throws IOException {
-        try {
-            Files.writeString(file.toPath(), data, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            Files.delete(file.toPath());
-            throw e;
-        }
-    }
+    public static String generateIvEncryptionKey() {
+        final SecureRandom secureRandom = new SecureRandom();
+        final byte[] iv = new byte[IV_LENGTH_BYTE];
+        secureRandom.nextBytes(iv);
 
-    public Key getKey() {
-        return key;
+        return Base64.getEncoder().encodeToString(iv);
     }
 }
