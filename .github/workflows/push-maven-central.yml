@@ -26,6 +26,9 @@ jobs:
 
       - name: Set up Java
         uses: actions/setup-java@v3
+        env:
+          ENCRYPTION_KEY: a2V5MQo=
+          ENCRYPTION_IV: a2V5Mgo=
         with:
           java-version: '17'
           distribution: 'temurin'
