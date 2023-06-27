@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.0</version>
+        <version>3.1.1</version>
         <relativePath/>
     </parent>
 
@@ -15,7 +15,7 @@
     <artifactId>funixproductions-core</artifactId>
     <version>1.0.5</version>
     <name>funixproductions-core</name>
-    <description>funixproductions-core for all copany projects</description>
+    <description>funixproductions-core for all company projects</description>
     <url>https://github.com/FunixProductions/spring-core</url>
     <packaging>pom</packaging>
 
@@ -52,11 +52,11 @@
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
         <io.jsonwebtoken.version>0.11.5</io.jsonwebtoken.version>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-configuration-processor -->
-        <org.springframework.boot.annotation.version>3.1.0</org.springframework.boot.annotation.version>
+        <org.springframework.boot.annotation.version>3.1.1</org.springframework.boot.annotation.version>
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <org.postgresql.version>42.6.0</org.postgresql.version>
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
-        <org.flywaydb.version>9.18.0</org.flywaydb.version>
+        <org.flywaydb.version>9.20.0</org.flywaydb.version>
     </properties>
 
     <licenses>
