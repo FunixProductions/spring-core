@@ -1,6 +1,7 @@
 package com.funixproductions.core.tools.encryption;
 
 import com.google.common.base.Strings;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -9,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Need env configured to run this test
  * You need to set the environment variables ENCRYPTION_KEY and ENCRYPTION_IV
  */
+@Slf4j
 class TestEncryption {
 
     @Test
@@ -25,11 +27,17 @@ class TestEncryption {
 
     @Test
     void testFetchNewEncryptionKey() {
-        assertFalse(Strings.isNullOrEmpty(Encryption.generateNewEncryptionKey()));
+        final String key = Encryption.generateNewEncryptionKey();
+
+        log.info("New encryption key: {}", key);
+        assertFalse(Strings.isNullOrEmpty(key));
     }
 
     @Test
     void testFetchNewEncryptionIvKey() {
-        assertFalse(Strings.isNullOrEmpty(Encryption.generateIvEncryptionKey()));
+        final String key = Encryption.generateIvEncryptionKey();
+
+        log.info("New encryption iv key: {}", key);
+        assertFalse(Strings.isNullOrEmpty(key));
     }
 }
