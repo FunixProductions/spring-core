@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.1</version>
+        <version>3.1.2</version>
         <relativePath/>
     </parent>
 
@@ -52,11 +52,11 @@
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
         <io.jsonwebtoken.version>0.11.5</io.jsonwebtoken.version>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-configuration-processor -->
-        <org.springframework.boot.annotation.version>3.1.1</org.springframework.boot.annotation.version>
+        <org.springframework.boot.annotation.version>3.1.2</org.springframework.boot.annotation.version>
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <org.postgresql.version>42.6.0</org.postgresql.version>
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
-        <org.flywaydb.version>9.20.1</org.flywaydb.version>
+        <org.flywaydb.version>9.21.1</org.flywaydb.version>
     </properties>
 
     <licenses>

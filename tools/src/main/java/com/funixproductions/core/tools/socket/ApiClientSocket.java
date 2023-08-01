@@ -1,7 +1,7 @@
 package com.funixproductions.core.tools.socket;
 
-import com.google.common.base.Strings;
 import com.funixproductions.core.exceptions.ApiException;
+import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 
@@ -172,18 +172,18 @@ public abstract class ApiClientSocket {
     private void runMessagePool() {
         while (this.socket != null && !this.socket.isClosed()) {
 
-            if (this.socket.isConnected()) {
+            if (this.socket.isConnected() && this.writer != null) {
                 final String message = this.messageQueue.poll();
 
                 if (!Strings.isNullOrEmpty(message)) {
                     this.writer.println(message);
-
-                    try {
-                        Thread.sleep(this.cooldownMessages);
-                    } catch (InterruptedException interruptedException) {
-                        Thread.currentThread().interrupt();
-                    }
                 }
+            }
+
+            try {
+                Thread.sleep(this.cooldownMessages);
+            } catch (InterruptedException interruptedException) {
+                Thread.currentThread().interrupt();
             }
         }
     }
