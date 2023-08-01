@@ -10,16 +10,13 @@ import com.funixproductions.core.crud.services.search.SearchBuilder;
 import com.funixproductions.core.exceptions.ApiBadRequestException;
 import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.exceptions.ApiNotFoundException;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +28,7 @@ import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.*;
 
+@Slf4j
 @Getter
 @RequiredArgsConstructor
 public abstract class ApiService<DTO extends ApiDTO,
@@ -52,8 +50,13 @@ public abstract class ApiService<DTO extends ApiDTO,
 
             beforeSendingDTO(toReturn.getContent());
             return new PageDTO<>(toReturn);
-        } catch (PersistenceException e) {
-            throw handleOrmException(e);
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            final String errMessage = "Une erreur interne est survenue lors de la récupération des données.";
+
+            log.error(errMessage, e);
+            throw new ApiException(errMessage, e);
         }
     }
 
@@ -73,8 +76,13 @@ public abstract class ApiService<DTO extends ApiDTO,
             } else {
                 throw new ApiNotFoundException(String.format(MESSAGE_ENTITY_NOT_FOUND, id));
             }
-        } catch (PersistenceException e) {
-            throw handleOrmException(e);
+        }  catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            final String errMessage = "Une erreur interne est survenue lors de la récupération de la donnée.";
+
+            log.error(errMessage, e);
+            throw new ApiException(errMessage, e);
         }
     }
 
@@ -115,8 +123,13 @@ public abstract class ApiService<DTO extends ApiDTO,
             entitiesSaved.forEach(entity -> toSend.add(mapper.toDto(entity)));
             this.beforeSendingDTO(toSend);
             return toSend;
-        } catch (PersistenceException e) {
-            throw handleOrmException(e);
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            final String errMessage = "Une erreur interne est survenue lors de la création d'entité.";
+
+            log.error(errMessage, e);
+            throw new ApiException(errMessage, e);
         }
     }
 
@@ -174,8 +187,13 @@ public abstract class ApiService<DTO extends ApiDTO,
             entitiesSaved.forEach(entity -> toSend.add(mapper.toDto(entity)));
             beforeSendingDTO(toSend);
             return toSend;
-        } catch (PersistenceException e) {
-            throw handleOrmException(e);
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            final String errMessage = "Une erreur interne est survenue lors de la mise à jour d'entité.";
+
+            log.error(errMessage, e);
+            throw new ApiException(errMessage, e);
         }
     }
 
@@ -193,8 +211,13 @@ public abstract class ApiService<DTO extends ApiDTO,
             } else {
                 throw new ApiNotFoundException(String.format(MESSAGE_ENTITY_NOT_FOUND, id));
             }
-        } catch (PersistenceException e) {
-            throw handleOrmException(e);
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            final String errMessage = "Une erreur interne est survenue lors de la suppression d'entité.";
+
+            log.error(errMessage, e);
+            throw new ApiException(errMessage, e);
         }
     }
 
@@ -207,8 +230,13 @@ public abstract class ApiService<DTO extends ApiDTO,
 
             beforeDeletingEntity(search);
             repository.deleteAll(search);
-        } catch (PersistenceException e) {
-            throw handleOrmException(e);
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            final String errMessage = "Une erreur interne est survenue lors de la suppression de plusieurs entités.";
+
+            log.error(errMessage, e);
+            throw new ApiException(errMessage, e);
         }
     }
 
@@ -273,18 +301,6 @@ public abstract class ApiService<DTO extends ApiDTO,
                     throw new ApiException("Une erreur interne est survenue lors de la mise à jour de l'entité.", e);
                 }
             }
-        }
-    }
-
-    private ApiException handleOrmException(final PersistenceException ormException) {
-        if (ormException instanceof EntityNotFoundException) {
-            throw new ApiNotFoundException(String.format("L'entité n'a pas été trouvée. %s", ormException.getMessage()), ormException);
-        } else if (ormException instanceof EntityExistsException) {
-            throw new ApiBadRequestException(String.format("L'entité existe déjà. %s", ormException.getMessage()), ormException);
-        } else if (ormException instanceof ConstraintViolationException) {
-            throw new ApiBadRequestException(String.format("La requête est invalide. %s", ormException.getMessage()), ormException);
-        } else {
-            throw new ApiException(String.format("Une erreur interne est survenue. %s", ormException.getMessage()), ormException);
         }
     }
 
