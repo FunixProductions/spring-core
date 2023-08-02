@@ -3,6 +3,7 @@ package com.funixproductions.core.crud;
 import com.funixproductions.core.TestApp;
 import com.funixproductions.core.crud.doc.dtos.TestDTO;
 import com.funixproductions.core.crud.doc.entities.TestEntity;
+import com.funixproductions.core.crud.doc.enums.TestEnum;
 import com.funixproductions.core.crud.doc.repositories.TestRepository;
 import com.funixproductions.core.crud.doc.services.TestService;
 import com.funixproductions.core.crud.dtos.PageDTO;
@@ -18,6 +19,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -193,6 +195,68 @@ class CrudIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(gson.toJson(new TestDTO())))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testPutNoId() throws Exception {
+        final TestDTO testDTO = new TestDTO();
+        testDTO.setData("oui");
+
+        mockMvc.perform(put(ROUTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gson.toJson(testDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testPutNoData() throws Exception {
+        final TestDTO testDTO = new TestDTO();
+        testDTO.setId(UUID.randomUUID());
+
+        mockMvc.perform(put(ROUTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gson.toJson(testDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testPut() throws Exception {
+        final TestDTO testDTO = new TestDTO();
+        testDTO.setData("oui");
+        testDTO.setNumber(1);
+        testDTO.setDate(new Date());
+        testDTO.setAFloat(1.0f);
+        testDTO.setADouble(1.0);
+        testDTO.setABoolean(true);
+        testDTO.setTestEnum(TestEnum.ONE);
+
+        MvcResult mvcResult = mockMvc.perform(post(ROUTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gson.toJson(testDTO)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        final TestDTO created = gson.fromJson(mvcResult.getResponse().getContentAsString(), TestDTO.class);
+        final TestDTO toPut = new TestDTO();
+        toPut.setData("changed");
+        toPut.setId(created.getId());
+
+        mvcResult = mockMvc.perform(put(ROUTE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gson.toJson(toPut)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        final TestDTO result = gson.fromJson(mvcResult.getResponse().getContentAsString(), TestDTO.class);
+        assertEquals(created.getCreatedAt(), result.getCreatedAt());
+        assertNotNull(result.getUpdatedAt());
+        assertEquals(toPut.getData(), result.getData());
+        assertNull(result.getNumber());
+        assertNull(result.getDate());
+        assertNull(result.getAFloat());
+        assertNull(result.getADouble());
+        assertNull(result.getABoolean());
+        assertNull(result.getTestEnum());
     }
 
     @Test

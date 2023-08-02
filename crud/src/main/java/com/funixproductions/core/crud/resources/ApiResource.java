@@ -46,6 +46,16 @@ public abstract class ApiResource<DTO extends ApiDTO, SERVICE extends CrudClient
     }
 
     @Override
+    public DTO updatePut(DTO request) {
+        return service.updatePut(request);
+    }
+
+    @Override
+    public List<DTO> updatePut(List<@Valid DTO> request) {
+        return service.updatePut(request);
+    }
+
+    @Override
     public void delete(String id) {
         service.delete(id);
     }

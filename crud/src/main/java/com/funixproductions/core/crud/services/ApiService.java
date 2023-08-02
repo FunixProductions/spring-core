@@ -199,6 +199,68 @@ public abstract class ApiService<DTO extends ApiDTO,
 
     @Override
     @Transactional
+    public DTO updatePut(DTO request) {
+        if (request.getId() == null) {
+            throw new ApiBadRequestException("Vous n'avez pas spécifié d'id.");
+        }
+
+        final List<DTO> response = updatePut(Collections.singletonList(request));
+        if (response.size() == 1) {
+            return response.get(0);
+        } else {
+            throw new ApiNotFoundException(String.format(MESSAGE_ENTITY_NOT_FOUND, request.getId()));
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<DTO> updatePut(List<@Valid DTO> request) {
+        try {
+            this.beforeMappingToEntity(request);
+            final Set<String> ids = new HashSet<>();
+            for (final DTO dto : request) {
+                if (dto.getId() != null) {
+                    ids.add(dto.getId().toString());
+                }
+            }
+            final Iterable<ENTITY> entities = repository.findAllByUuidIn(ids);
+            final Set<ENTITY> toSave = new HashSet<>();
+
+            ENTITY entRequest;
+            ENTITY toAdd;
+            for (final DTO actualDto : request) {
+                entRequest = this.getEntityFromUidInList(entities, actualDto.getId());
+
+                if (entRequest != null) {
+                    toAdd = mapper.toEntity(actualDto);
+                    toAdd.setId(entRequest.getId());
+                    toAdd.setCreatedAt(entRequest.getCreatedAt());
+                    toAdd.setUpdatedAt(Date.from(Instant.now()));
+                    this.afterMapperCall(actualDto, toAdd);
+                    toSave.add(toAdd);
+                }
+            }
+
+            this.beforeSavingEntity(toSave);
+            final Iterable<ENTITY> entitiesSaved = repository.saveAll(toSave);
+            this.afterSavingEntity(entitiesSaved);
+
+            final List<DTO> toSend = new ArrayList<>();
+            entitiesSaved.forEach(entity -> toSend.add(mapper.toDto(entity)));
+            beforeSendingDTO(toSend);
+            return toSend;
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            final String errMessage = "Une erreur interne est survenue lors de la mise à jour complète d'entité.";
+
+            log.error(errMessage, e);
+            throw new ApiException(errMessage, e);
+        }
+    }
+
+    @Override
+    @Transactional
     public void delete(String id) {
         try {
             final Optional<ENTITY> search = repository.findByUuid(id);

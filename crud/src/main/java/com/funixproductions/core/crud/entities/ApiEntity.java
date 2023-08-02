@@ -8,6 +8,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -50,7 +51,7 @@ public abstract class ApiEntity implements Serializable {
     @PrePersist
     public void onCreate() {
         updateUuid();
-        createdAt = new Date();
+        createdAt = Date.from(Instant.now());
     }
 
     /**
@@ -59,7 +60,7 @@ public abstract class ApiEntity implements Serializable {
     @PreUpdate
     public void onUpdate() {
         updateUuid();
-        updatedAt = new Date();
+        updatedAt = Date.from(Instant.now());
     }
 
     private void updateUuid() {

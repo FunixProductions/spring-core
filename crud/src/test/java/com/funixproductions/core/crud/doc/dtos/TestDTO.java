@@ -2,6 +2,7 @@ package com.funixproductions.core.crud.doc.dtos;
 
 import com.funixproductions.core.crud.doc.enums.TestEnum;
 import com.funixproductions.core.crud.dtos.ApiDTO;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestDTO extends ApiDTO {
+    @NotBlank
     private String data;
     private Integer number;
     private Date date;
