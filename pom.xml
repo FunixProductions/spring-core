@@ -13,7 +13,7 @@
 
     <groupId>com.funixproductions.core</groupId>
     <artifactId>funixproductions-core</artifactId>
-    <version>1.0.6.3</version>
+    <version>1.0.7</version>
     <name>funixproductions-core</name>
     <description>funixproductions-core for all company projects</description>
     <url>https://github.com/FunixProductions/spring-core</url>
@@ -29,7 +29,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <com.funixproductions.core.version>1.0.6.3</com.funixproductions.core.version>
+        <com.funixproductions.core.version>1.0.7</com.funixproductions.core.version>
 
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <com.google.guava.version>32.1.2-jre</com.google.guava.version>
@@ -56,7 +56,7 @@
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <org.postgresql.version>42.6.0</org.postgresql.version>
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
-        <org.flywaydb.version>9.21.1</org.flywaydb.version>
+        <org.flywaydb.version>9.21.2</org.flywaydb.version>
     </properties>
 
     <licenses>
