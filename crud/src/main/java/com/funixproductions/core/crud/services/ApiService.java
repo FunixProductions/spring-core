@@ -27,6 +27,8 @@ import org.springframework.lang.Nullable;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Getter
@@ -402,7 +404,7 @@ public abstract class ApiService<DTO extends ApiDTO,
             final List<Sort.Order> orders = new ArrayList<>();
 
             for (final String s : sort) {
-                final String[] sortElem = s.split(":");
+                final String[] sortElem = s.split(":", 2);
 
                 if (sortElem.length == 2) {
                     final String field = sortElem[0];
@@ -434,7 +436,7 @@ public abstract class ApiService<DTO extends ApiDTO,
         final String[] searchs = search.split(",");
 
         for (final String searchQuery : searchs) {
-            final String[] searchSplit = searchQuery.split(":");
+            final String[] searchSplit = searchQuery.split(":", 3);
 
             if (searchSplit.length != 3) {
                 throw new ApiBadRequestException("La recherche est invalide. Vous devez respecter le format suivant : key:operation:value");

@@ -10,6 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Field;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -41,15 +44,27 @@ public class ApiSearch<ENTITY extends ApiEntity> implements Specification<ENTITY
                         return criteriaBuilder.notEqual(root.get(searchKeyParts[0]), valueSearch);
                     }
                     case GREATER_THAN -> {
+                        if (valueSearch instanceof final Date date) {
+                            return criteriaBuilder.greaterThan(root.get(searchKeyParts[0]), date);
+                        }
                         return criteriaBuilder.greaterThan(root.get(searchKeyParts[0]), valueSearch.toString());
                     }
                     case GREATER_THAN_OR_EQUAL_TO -> {
+                        if (valueSearch instanceof final Date date) {
+                            return criteriaBuilder.greaterThanOrEqualTo(root.get(searchKeyParts[0]), date);
+                        }
                         return criteriaBuilder.greaterThanOrEqualTo(root.get(searchKeyParts[0]), valueSearch.toString());
                     }
                     case LESS_THAN -> {
+                        if (valueSearch instanceof final Date date) {
+                            return criteriaBuilder.lessThan(root.get(searchKeyParts[0]), date);
+                        }
                         return criteriaBuilder.lessThan(root.get(searchKeyParts[0]), valueSearch.toString());
                     }
                     case LESS_THAN_OR_EQUAL_TO -> {
+                        if (valueSearch instanceof final Date date) {
+                            return criteriaBuilder.lessThanOrEqualTo(root.get(searchKeyParts[0]), date);
+                        }
                         return criteriaBuilder.lessThanOrEqualTo(root.get(searchKeyParts[0]), valueSearch.toString());
                     }
                     case LIKE -> {
@@ -86,15 +101,27 @@ public class ApiSearch<ENTITY extends ApiEntity> implements Specification<ENTITY
                         return criteriaBuilder.notEqual(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch);
                     }
                     case GREATER_THAN -> {
+                        if (valueSearch instanceof final Date date) {
+                            return criteriaBuilder.greaterThan(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), date);
+                        }
                         return criteriaBuilder.greaterThan(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch.toString());
                     }
                     case GREATER_THAN_OR_EQUAL_TO -> {
+                        if (valueSearch instanceof final Date date) {
+                            return criteriaBuilder.greaterThanOrEqualTo(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), date);
+                        }
                         return criteriaBuilder.greaterThanOrEqualTo(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch.toString());
                     }
                     case LESS_THAN -> {
+                        if (valueSearch instanceof final Date date) {
+                            return criteriaBuilder.lessThan(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), date);
+                        }
                         return criteriaBuilder.lessThan(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch.toString());
                     }
                     case LESS_THAN_OR_EQUAL_TO -> {
+                        if (valueSearch instanceof final Date date) {
+                            return criteriaBuilder.lessThanOrEqualTo(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), date);
+                        }
                         return criteriaBuilder.lessThanOrEqualTo(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch.toString());
                     }
                     case LIKE -> {
@@ -140,26 +167,32 @@ public class ApiSearch<ENTITY extends ApiEntity> implements Specification<ENTITY
     private Object castToRequiredType(@NonNull final Root<ENTITY> root,
                                       @NonNull final Class<?> fieldType,
                                       @NonNull final String value) {
-        if (fieldType.isAssignableFrom(Double.class)) {
-            return Double.valueOf(value);
-        } else if (fieldType.isAssignableFrom(Integer.class)) {
-            return Integer.valueOf(value);
-        } else if (fieldType.isAssignableFrom(Long.class)) {
-            return Long.parseLong(value);
-        } else if (fieldType.isAssignableFrom(String.class)) {
-            return value;
-        } else if (fieldType.isEnum()) {
-            return Enum.valueOf((Class<? extends Enum>) fieldType, value);
-        } else if (fieldType.isAssignableFrom(Boolean.class)) {
-            return Boolean.valueOf(value);
-        } else if (fieldType.isAssignableFrom(UUID.class)) {
-            return UUID.fromString(value);
-        } else if (fieldType.isAssignableFrom(Float.class)) {
-            return Float.valueOf(value);
-        } else if (fieldType.isAnnotationPresent(Entity.class)) {
-            return retrieveTypeFromEntity(root, fieldType, value);
-        } else {
-            throw new ApiBadRequestException("Le type " + fieldType + " n'est pas supporté.");
+        try {
+            if (fieldType.isAssignableFrom(Double.class)) {
+                return Double.valueOf(value);
+            } else if (fieldType.isAssignableFrom(Integer.class)) {
+                return Integer.valueOf(value);
+            } else if (fieldType.isAssignableFrom(Long.class)) {
+                return Long.parseLong(value);
+            } else if (fieldType.isAssignableFrom(String.class)) {
+                return value;
+            } else if (fieldType.isEnum()) {
+                return Enum.valueOf((Class<? extends Enum>) fieldType, value);
+            } else if (fieldType.isAssignableFrom(Boolean.class)) {
+                return Boolean.valueOf(value);
+            } else if (fieldType.isAssignableFrom(UUID.class)) {
+                return UUID.fromString(value);
+            } else if (fieldType.isAssignableFrom(Float.class)) {
+                return Float.valueOf(value);
+            } else if (fieldType.isAssignableFrom(Date.class)) {
+                return Date.from(Instant.parse(value));
+            } else if (fieldType.isAnnotationPresent(Entity.class)) {
+                return retrieveTypeFromEntity(root, fieldType, value);
+            } else {
+                throw new ApiBadRequestException("Le type " + fieldType + " n'est pas supporté.");
+            }
+        } catch (DateTimeParseException e) {
+            throw new ApiBadRequestException("Impossible de parser la valeur date " + value + " en " + fieldType.getName(), e);
         }
     }
 

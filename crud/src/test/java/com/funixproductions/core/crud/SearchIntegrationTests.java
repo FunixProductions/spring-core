@@ -20,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -202,7 +203,29 @@ class SearchIntegrationTests {
     }
 
     @Test
-    void testSearchStringFormattedUUID() throws  Exception {
+    void testFetchDates() throws Exception {
+        final Instant now = Instant.now();
+        final List<TestEntity> testEntities = new ArrayList<>();
+
+        testEntities.add(new TestEntity("ouiData2", 10, Date.from(now.plusSeconds(100)), 1.f, 10.0, true, TestEnum.ONE));
+        testEntities.add(new TestEntity("NonData2", 11, Date.from(now.plusSeconds(60)), 2.f, 5.0, true, TestEnum.TWO));
+        testEntities.add(new TestEntity("dd", 11, Date.from(now.plusSeconds(60)), 2.f, 5.0, true, TestEnum.THREE));
+        testEntities.add(new TestEntity("dd", 11, Date.from(now.minusSeconds(60)), 2.f, 5.0, true, TestEnum.THREE));
+
+        this.repository.saveAllAndFlush(testEntities);
+
+        PageDTO<TestDTO> response = this.testService.getAll("", "", String.format("date:%s:%s", SearchOperation.GREATER_THAN.getOperation(), now), "");
+        assertEquals(3, response.getTotalElementsThisPage());
+
+        response = this.testService.getAll("", "", String.format("date:%s:%s", SearchOperation.LESS_THAN.getOperation(), now), "");
+        assertEquals(1, response.getTotalElementsThisPage());
+
+        response = this.testService.getAll("", "", String.format("date:%s:%s", SearchOperation.GREATER_THAN.getOperation(), now.plusSeconds(70)), "");
+        assertEquals(1, response.getTotalElementsThisPage());
+    }
+
+    @Test
+    void testSearchStringFormattedUUID() throws Exception {
         TestDTO testDTO = new TestDTO();
         testDTO.setData(UUID.randomUUID().toString());
         testDTO = this.testService.create(testDTO);
