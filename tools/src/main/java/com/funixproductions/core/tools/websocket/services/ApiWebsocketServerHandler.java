@@ -11,10 +11,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public abstract class ApiWebsocketServerHandler extends TextWebSocketHandler {
@@ -127,8 +124,11 @@ public abstract class ApiWebsocketServerHandler extends TextWebSocketHandler {
 
     private void sendPingRequests() throws ApiException {
         for (final WebSocketSession session : this.webSocketSessions.values()) {
-            final String sessionId = session.getId();
+            if (session == null || !session.isOpen()) {
+                continue;
+            }
 
+            final String sessionId = session.getId();
             this.sessionsPings.computeIfAbsent(sessionId, id -> {
                 final WebSocketPingMessageRequest pingMessageRequest = new WebSocketPingMessageRequest();
 
