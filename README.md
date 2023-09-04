@@ -6,7 +6,7 @@ Spring core package for spring projects
 
 ### Importing project
 ```xml
-    <groupId>com.funixproductions.core</groupId>
-    <artifactId>funixproductions-core</artifactId>
-    <version>(maven version)</version>
+<groupId>com.funixproductions.core</groupId>
+<artifactId>funixproductions-core</artifactId>
+<version>(maven version)</version>
 ```
