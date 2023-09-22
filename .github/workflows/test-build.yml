@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '21'
-          distribution: 'oracle'
+          distribution: 'amazoncorretto'
           cache: maven
 
       - name: Build with Maven
