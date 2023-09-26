@@ -13,7 +13,7 @@
 
     <groupId>com.funixproductions.core</groupId>
     <artifactId>funixproductions-core</artifactId>
-    <version>1.0.7.2</version>
+    <version>1.0.7.3</version>
     <name>funixproductions-core</name>
     <description>funixproductions-core for all company projects</description>
     <url>https://github.com/FunixProductions/spring-core</url>
@@ -28,8 +28,8 @@
     </modules>
 
     <properties>
-        <java.version>21</java.version>
-        <com.funixproductions.core.version>1.0.7.2</com.funixproductions.core.version>
+        <java.version>17</java.version>
+        <com.funixproductions.core.version>1.0.7.3</com.funixproductions.core.version>
 
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <com.google.guava.version>32.1.2-jre</com.google.guava.version>
