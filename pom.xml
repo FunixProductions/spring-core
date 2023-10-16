@@ -44,7 +44,7 @@
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
         <maven.sources.version>3.3.0</maven.sources.version>
         <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
-        <org.jacoco.coverage.version>0.8.10</org.jacoco.coverage.version>
+        <org.jacoco.coverage.version>0.8.11</org.jacoco.coverage.version>
         <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
