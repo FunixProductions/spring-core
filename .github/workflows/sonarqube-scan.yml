@@ -49,4 +49,4 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           ENCRYPTION_KEY: hwJdNY1/yC3miXQR+Vw2V3qtt1e3FPJ2y62BKtROUJs=
           ENCRYPTION_IV: DKKyySzj8ao5WgraQpwj+A==
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=FunixProductions_spring-core_AYtSyyHGowU6cjaXCt5s -T 6
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=FunixProductions_FunixProductions-API_AYtS2SOkowU6cjaXCt6F -Dsonar.projectName='FunixProductions-API'
