@@ -3,6 +3,7 @@
 Spring core package for spring projects
 
 ![Maven Central](https://img.shields.io/maven-central/v/com.funixproductions.core/funixproductions-core.svg)
+
 [![Maven build & Test](https://github.com/FunixProductions/spring-core/actions/workflows/test-build.yml/badge.svg?branch=master)](https://github.com/FunixProductions/spring-core/actions/workflows/test-build.yml)
 
 [![Quality Gate Status](https://sonarqube.funixproductions.com/api/project_badges/measure?project=FunixProductions_spring-core_AYtSyyHGowU6cjaXCt5s&metric=alert_status&token=sqb_9aba38a7039394e143d8e5aac97faa876388f33c)](https://sonarqube.funixproductions.com/dashboard?id=FunixProductions_spring-core_AYtSyyHGowU6cjaXCt5s)
