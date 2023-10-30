@@ -244,6 +244,11 @@ class SearchIntegrationTests {
     }
 
     @Test
+    void testSearchWithBracketsEmptyList() {
+        assertDoesNotThrow(() -> this.testService.getAll("", "", String.format("data:%s:[],number:%s:10", SearchOperation.EQUALS.getOperation(), SearchOperation.EQUALS.getOperation()), ""));
+    }
+
+    @Test
     void testSearchErrorString() throws Exception {
         checkSearchFail("data-ouiData");
         checkSearchFail("oui:");

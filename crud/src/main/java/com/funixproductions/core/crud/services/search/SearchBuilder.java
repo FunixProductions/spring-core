@@ -15,7 +15,7 @@ public class SearchBuilder<ENTITY extends ApiEntity> {
      * Add search parameter to the list.
      * @param key The key of the search parameter. This is one of the fields of the entity.
      * @param operation Operation Key.
-     * @param value Value of the search parameter. You can add [value1,value2] to search between two values.
+     * @param value Value of the search parameter. You can add [value1|value2] to search (or) between two or more values.
      */
     public void with(final String key, final String operation, final String value) {
         SearchOperation searchOperation = null;
