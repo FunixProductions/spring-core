@@ -1,5 +1,7 @@
 package com.funixproductions.core.tools.time;
 
+import lombok.NoArgsConstructor;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -8,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class TimeUtils {
 
     private static final ZoneId PARIS_ZONE_ID = ZoneId.of("Europe/Paris");
