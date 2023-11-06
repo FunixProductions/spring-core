@@ -57,6 +57,8 @@
         <org.postgresql.version>42.6.0</org.postgresql.version>
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
         <org.flywaydb.version>9.22.2</org.flywaydb.version>
+        <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
+        <org.apache.pdfbox.version>3.0.0</org.apache.pdfbox.version>
     </properties>
 
     <licenses>
