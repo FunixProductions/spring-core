@@ -1,6 +1,7 @@
 package com.funixproductions.core.tools.pdf.generators;
 
 import com.funixproductions.core.exceptions.ApiException;
+import com.funixproductions.core.tools.pdf.entities.PDFLine;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -13,6 +14,7 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import java.io.Closeable;
 import java.io.File;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -84,28 +86,27 @@ public abstract class PDFGenerator implements Closeable {
     /**
      * Writes a text in the PDF document. Used to write paragraphs.
      * @param lines the lines to write
-     * @param fontSize the font size
-     * @param font the font
      * @throws ApiException if an error occurs
      */
-    public final void writePlainText(@NonNull final String[] lines,
-                                     final float fontSize,
-                                     @NonNull final PDFont font) throws ApiException {
+    public final void writePlainText(@NonNull final Collection<PDFLine> lines) throws ApiException {
         try {
-            contentStream.setFont(font, fontSize);
+            for (final PDFLine line : lines) {
+                final float fontSize = line.getFontSize();
+                final PDFont font = line.getFont();
 
-            for (String line : lines) {
+                contentStream.setFont(font, fontSize);
+
                 if (yPosition <= margin) {
                     newPage();
                     contentStream.setFont(font, fontSize);
                 }
 
-                final String[] words = line.split(" ");
+                final String[] words = line.getText().split(" ");
                 StringBuilder lineBuilder = new StringBuilder();
                 float pageWidth = currentPage.getMediaBox().getWidth();
                 float wordWidth;
 
-                for (String word : words) {
+                for (final String word : words) {
                     wordWidth = font.getStringWidth(lineBuilder + " " + word) / 1000 * fontSize;
 
                     if (wordWidth < (pageWidth - (margin + 20))) {
