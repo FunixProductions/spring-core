@@ -12,7 +12,6 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -185,11 +184,19 @@ public abstract class PDFGenerator implements Closeable {
 
     /**
      * Closes the PDF document. And free memory.
-     * @throws IOException if an error occurs
+     * @throws ApiException if an error occurs
      */
     @Override
-    public void close() throws IOException {
-        this.pdfDocument.close();
+    public void close() throws ApiException {
+        try {
+            if (this.contentStream != null)
+                this.contentStream.close();
+
+            this.pdfDocument.close();
+        } catch (final Exception e) {
+            log.error("Une erreur est survenue lors de la fermeture du PDF {} .", this.pdfName, e);
+            throw new ApiException("Une erreur est survenue lors de la fermeture du PDF " + this.pdfName + ".", e);
+        }
     }
 
     /**
