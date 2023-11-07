@@ -29,12 +29,12 @@ public abstract class PDFGenerator implements Closeable {
     /**
      * The name of the PDF file.
      */
-    private final String pdfName;
+    protected final String pdfName;
 
     /**
      * The PDF document.
      */
-    private final PDDocument pdfDocument = new PDDocument();
+    protected final PDDocument pdfDocument = new PDDocument();
 
     /**
      * The current page of the PDF document editing.
@@ -152,7 +152,7 @@ public abstract class PDFGenerator implements Closeable {
     /**
      * Creates a new page in the PDF document.
      */
-    protected final void newPage() throws ApiException {
+    protected void newPage() throws ApiException {
         try {
             if (contentStream != null) {
                 contentStream.close();
