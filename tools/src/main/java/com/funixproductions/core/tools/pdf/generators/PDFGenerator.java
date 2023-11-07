@@ -41,6 +41,11 @@ public abstract class PDFGenerator implements Closeable {
     protected PDPage currentPage;
 
     /**
+     * The current page content stream.
+     */
+    protected PDPageContentStream contentStream;
+
+    /**
      * The font size of the PDF document.
      */
     protected float topMargin = 50;
@@ -87,17 +92,12 @@ public abstract class PDFGenerator implements Closeable {
     public final void writePlainText(@NonNull final String[] lines,
                                      final float fontSize,
                                      @NonNull final PDFont font) throws ApiException {
-        PDPageContentStream contentStream = null;
-
         try {
-            contentStream = new PDPageContentStream(pdfDocument, currentPage);
             contentStream.setFont(font, fontSize);
 
             for (String line : lines) {
                 if (yPosition <= margin) {
-                    contentStream.close();
                     newPage();
-                    contentStream = new PDPageContentStream(pdfDocument, currentPage);
                     contentStream.setFont(font, fontSize);
                 }
 
@@ -123,9 +123,7 @@ public abstract class PDFGenerator implements Closeable {
                         lineBuilder = new StringBuilder(word);
 
                         if (yPosition <= margin) {
-                            contentStream.close();
                             newPage();
-                            contentStream = new PDPageContentStream(pdfDocument, currentPage);
                             contentStream.setFont(font, fontSize);
                         }
                     }
@@ -138,6 +136,7 @@ public abstract class PDFGenerator implements Closeable {
                 yPosition -= lineSpacing;
             }
         } catch (final Exception e) {
+            log.error("Une erreur est survenue lors de l'écriture dans le PDF {} .", this.pdfName, e);
             throw new ApiException("Une erreur est survenue lors de l'écriture dans le PDF " + this.pdfName + ".", e);
         } finally {
             if (contentStream != null) {
@@ -153,12 +152,35 @@ public abstract class PDFGenerator implements Closeable {
     /**
      * Creates a new page in the PDF document.
      */
-    protected final void newPage() {
-        final PDPage page = new PDPage();
+    protected final void newPage() throws ApiException {
+        try {
+            if (contentStream != null) {
+                contentStream.close();
+            }
 
-        yPosition = page.getMediaBox().getHeight() - topMargin;
-        pdfDocument.addPage(page);
-        this.currentPage = page;
+            this.currentPage = new PDPage();
+            contentStream = new PDPageContentStream(pdfDocument, currentPage);
+
+            yPosition = currentPage.getMediaBox().getHeight() - topMargin;
+            pdfDocument.addPage(currentPage);
+            writePageNumber();
+        } catch (Exception e) {
+            log.error("Une erreur est survenue lors de la création d'une nouvelle page dans le PDF {} .", this.pdfName, e);
+            throw new ApiException("Une erreur est survenue lors de la création d'une nouvelle page dans le PDF " + this.pdfName + ".", e);
+        }
+    }
+
+    private void writePageNumber() throws ApiException {
+        try {
+            contentStream.beginText();
+            contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE);
+            contentStream.newLineAtOffset(currentPage.getMediaBox().getWidth() - 40, 20);
+            contentStream.showText(String.valueOf(pdfDocument.getNumberOfPages()));
+            contentStream.endText();
+        } catch (final Exception e) {
+            log.error("Une erreur est survenue lors de l'écriture du numéro de page dans le PDF {} .", this.pdfName, e);
+            throw new ApiException("Une erreur est survenue lors de l'écriture du numéro de page dans le PDF " + this.pdfName + ".", e);
+        }
     }
 
     /**
@@ -178,6 +200,7 @@ public abstract class PDFGenerator implements Closeable {
      */
     public final File generatePDF(@NonNull final File folderToStore) throws ApiException {
         if (!folderToStore.exists()) {
+            log.error("Le dossier de destination du PDF {} n'existe pas.", this.pdfName);
             throw new ApiException("Le dossier de destination du PDF " + this.pdfName + " n'existe pas.");
         }
 
@@ -188,6 +211,7 @@ public abstract class PDFGenerator implements Closeable {
             pdfDocument.save(pdfFile);
             return pdfFile;
         } catch (final Exception e) {
+            log.error("Une erreur est survenue lors de la génération du PDF {} .", this.pdfName, e);
             throw new ApiException("Une erreur est survenue lors de la génération du PDF " + this.pdfName + ".", e);
         }
     }
