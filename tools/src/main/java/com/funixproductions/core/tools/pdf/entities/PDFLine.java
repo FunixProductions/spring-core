@@ -4,6 +4,8 @@ import com.funixproductions.core.tools.pdf.generators.PDFGenerator;
 import lombok.*;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 
+import java.awt.*;
+
 /**
  * PDF line entity.
  * <p>
@@ -33,5 +35,8 @@ public class PDFLine {
      */
     @NonNull
     private PDFont font = PDFGenerator.DEFAULT_FONT;
+
+    @NonNull
+    private Color fontColor = PDFGenerator.DEFAULT_FONT_COLOR;
 
 }

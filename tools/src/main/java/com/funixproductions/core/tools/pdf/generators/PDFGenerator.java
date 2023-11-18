@@ -11,6 +11,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
+import java.awt.*;
 import java.io.Closeable;
 import java.io.File;
 import java.time.Instant;
@@ -25,6 +26,7 @@ public abstract class PDFGenerator implements Closeable {
 
     public static final PDFont DEFAULT_FONT = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
     public static final float DEFAULT_FONT_SIZE = 12;
+    public static final Color DEFAULT_FONT_COLOR = Color.BLACK;
 
     /**
      * The name of the PDF file.
@@ -94,22 +96,32 @@ public abstract class PDFGenerator implements Closeable {
         }
 
         try {
+            float fontSize;
+            PDFont font;
+            String[] words;
+            StringBuilder lineBuilder;
+            float pageWidth;
+            float wordWidth;
+            Color fontColor;
+
             for (final PDFLine line : lines) {
                 if (line == null) continue;
-                final float fontSize = line.getFontSize();
-                final PDFont font = line.getFont();
+                fontSize = line.getFontSize();
+                font = line.getFont();
+                fontColor = line.getFontColor();
 
                 contentStream.setFont(font, fontSize);
+                contentStream.setNonStrokingColor(fontColor);
 
                 if (yPosition <= margin) {
                     newPage();
                     contentStream.setFont(font, fontSize);
+                    contentStream.setNonStrokingColor(fontColor);
                 }
 
-                final String[] words = line.getText().split(" ");
-                StringBuilder lineBuilder = new StringBuilder();
-                float pageWidth = currentPage.getMediaBox().getWidth();
-                float wordWidth;
+                words = line.getText().split(" ");
+                lineBuilder = new StringBuilder();
+                pageWidth = currentPage.getMediaBox().getWidth();
 
                 for (final String word : words) {
                     wordWidth = font.getStringWidth(lineBuilder + " " + word) / 1000 * fontSize;
@@ -120,37 +132,35 @@ public abstract class PDFGenerator implements Closeable {
                         }
                         lineBuilder.append(word);
                     } else {
-                        contentStream.beginText();
-                        contentStream.newLineAtOffset(margin, yPosition);
-                        contentStream.showText(lineBuilder.toString());
-                        contentStream.endText();
-                        yPosition -= lineSpacing;
+                        this.writeLine(lineBuilder.toString());
                         lineBuilder = new StringBuilder(word);
 
                         if (yPosition <= margin) {
                             newPage();
                             contentStream.setFont(font, fontSize);
+                            contentStream.setNonStrokingColor(fontColor);
                         }
                     }
                 }
 
-                contentStream.beginText();
-                contentStream.newLineAtOffset(margin, yPosition);
-                contentStream.showText(lineBuilder.toString());
-                contentStream.endText();
-                yPosition -= lineSpacing;
+                this.writeLine(lineBuilder.toString());
             }
         } catch (final Exception e) {
             log.error("Une erreur est survenue lors de l'écriture dans le PDF {} .", this.pdfName, e);
             throw new ApiException("Une erreur est survenue lors de l'écriture dans le PDF " + this.pdfName + ".", e);
-        } finally {
-            if (contentStream != null) {
-                try {
-                    contentStream.close();
-                } catch (final Exception e) {
-                    log.error("Une erreur est survenue lors de la fermeture du PDF {} .", this.pdfName, e);
-                }
-            }
+        }
+    }
+
+    private void writeLine(final String line) throws ApiException {
+        try {
+            contentStream.beginText();
+            contentStream.newLineAtOffset(margin, yPosition);
+            contentStream.showText(line);
+            contentStream.endText();
+            yPosition -= lineSpacing;
+        } catch (Exception e) {
+            log.error("Une erreur est survenue lors de l'écriture dans le PDF {} .", this.pdfName, e);
+            throw new ApiException("Une erreur est survenue lors de l'écriture dans le PDF " + this.pdfName + ".", e);
         }
     }
 
@@ -193,7 +203,7 @@ public abstract class PDFGenerator implements Closeable {
      * @throws ApiException if an error occurs
      */
     @Override
-    public void close() throws ApiException {
+    public final void close() throws ApiException {
         try {
             if (this.contentStream != null)
                 this.contentStream.close();
@@ -212,6 +222,15 @@ public abstract class PDFGenerator implements Closeable {
      * @throws ApiException if an error occurs
      */
     public final File generatePDF(@NonNull final File folderToStore) throws ApiException {
+        try {
+            if (this.contentStream != null) {
+                this.contentStream.close();
+            }
+        } catch (Exception closeStreamException) {
+            log.error("Une erreur est survenue lors de la fermeture du stream PDF {} .", this.pdfName, closeStreamException);
+            throw new ApiException("Une erreur est survenue lors de la fermeture du PDF " + this.pdfName + ".", closeStreamException);
+        }
+
         if (!folderToStore.exists()) {
             log.error("Le dossier de destination du PDF {} n'existe pas.", this.pdfName);
             throw new ApiException("Le dossier de destination du PDF " + this.pdfName + " n'existe pas.");

@@ -16,12 +16,13 @@ class PDFGeneratorTest {
         try (final PDFGenerator pdfGenerator = new PDFGeneratorImpl("test1.pdf")) {
             pdfGenerator.writePlainText(
                     List.of(
-                            new PDFLine("This is a test Title.", 50, PDFGenerator.DEFAULT_FONT),
+                            new PDFLine("This is a test Title.", 50, PDFGenerator.DEFAULT_FONT, PDFGenerator.DEFAULT_FONT_COLOR),
                             new PDFLine("This is a test pdf."),
                             new PDFLine("This is a test pdf with second line."),
                             new PDFLine("This is a test pdf with third line.")
                     )
             );
+            pdfGenerator.writePlainText(List.of(new PDFLine("NEW LINE ADDED")));
             final File file = new File("target","pdfTestOutDirGen");
             if (!file.exists() && !file.mkdir()) {
                 throw new ApiException("Failed to create directory: " + file.getAbsolutePath());

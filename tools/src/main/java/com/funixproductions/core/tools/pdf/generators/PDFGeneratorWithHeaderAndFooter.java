@@ -4,16 +4,18 @@ import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.tools.pdf.entities.PDFCompanyData;
 import com.funixproductions.core.tools.pdf.entities.PDFLine;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.lang.Nullable;
 
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-@Setter
 @Slf4j(topic = "PDFGeneratorHeaderFooter")
 public abstract class PDFGeneratorWithHeaderAndFooter extends PDFGenerator {
 
@@ -87,8 +89,8 @@ public abstract class PDFGeneratorWithHeaderAndFooter extends PDFGenerator {
      * @throws ApiException on error write pdf
      */
     protected void setupHeader() throws ApiException {
-        setHeaderLogoOnNewPage();
         setCompanyInfosHeader();
+        setHeaderLogoOnNewPage();
     }
 
     /**
@@ -101,8 +103,14 @@ public abstract class PDFGeneratorWithHeaderAndFooter extends PDFGenerator {
     private void setHeaderLogoOnNewPage() throws ApiException {
         if (this.headerLogo != null) {
             try {
-                super.contentStream.drawImage(this.headerLogo, 50, 50);
-                super.yPosition += this.headerLogo.getHeight() + super.lineSpacing;
+                final float pageHeight = super.currentPage.getMediaBox().getHeight();
+                final float pageWidth = super.currentPage.getMediaBox().getWidth();
+
+                super.contentStream.drawImage(
+                        this.headerLogo,
+                        pageWidth - (this.headerLogo.getWidth()) - super.margin,
+                        pageHeight - (this.headerLogo.getHeight()) - super.margin
+                );
             } catch (final Exception e) {
                 log.error(ERROR_SLF4J, super.pdfName, e);
                 throw new ApiException(ERROR_API + super.pdfName, e);
@@ -112,46 +120,65 @@ public abstract class PDFGeneratorWithHeaderAndFooter extends PDFGenerator {
 
     private void setCompanyInfosHeader() throws ApiException {
         if (this.companyData == null) return;
-
-        final float initialMargin = super.margin;
-        final float actualMargin;
-
-        if (this.headerLogo != null) {
-            actualMargin = super.margin + this.headerLogo.getWidth() + super.lineSpacing;
-        } else {
-            actualMargin = initialMargin;
-        }
+        final float baseSpacing = super.lineSpacing;
+        final PDFont boldFont = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+        super.lineSpacing = 15;
 
         final List<PDFLine> lines = new ArrayList<>();
         if (this.companyData.getName() != null) {
-            lines.add(new PDFLine(this.companyData.getName()));
+            final PDFLine pdfLine = new PDFLine(this.companyData.getName());
+            pdfLine.setFontColor(Color.GRAY);
+            pdfLine.setFont(boldFont);
+
+            lines.add(pdfLine);
         }
         if (this.companyData.getAddress() != null) {
-            lines.add(new PDFLine(this.companyData.getAddress()));
+            final PDFLine pdfLine = new PDFLine(this.companyData.getAddress());
+            pdfLine.setFontColor(Color.GRAY);
+            pdfLine.setFont(boldFont);
+
+            lines.add(pdfLine);
         }
         if (this.companyData.getZipCode() != null && this.companyData.getCity() != null) {
-            lines.add(new PDFLine(this.companyData.getZipCode() + " " + this.companyData.getCity()));
+            final PDFLine pdfLine = new PDFLine(this.companyData.getZipCode() + " " + this.companyData.getCity());
+            pdfLine.setFontColor(Color.GRAY);
+            pdfLine.setFont(boldFont);
+
+            lines.add(pdfLine);
         }
         if (this.companyData.getPhone() != null) {
-            lines.add(new PDFLine(this.companyData.getPhone()));
+            final PDFLine pdfLine = new PDFLine(this.companyData.getPhone());
+            pdfLine.setFontColor(Color.GRAY);
+
+            lines.add(pdfLine);
         }
         if (this.companyData.getEmail() != null) {
-            lines.add(new PDFLine(this.companyData.getEmail()));
+            final PDFLine pdfLine = new PDFLine(this.companyData.getEmail());
+            pdfLine.setFontColor(Color.GRAY);
+
+            lines.add(pdfLine);
         }
         if (this.companyData.getWebsite() != null) {
-            lines.add(new PDFLine("Site internet : " + this.companyData.getWebsite()));
+            final PDFLine pdfLine = new PDFLine("Site internet : " + this.companyData.getWebsite());
+            pdfLine.setFontColor(Color.GRAY);
+
+            lines.add(pdfLine);
         }
         if (this.companyData.getSiret() != null) {
-            lines.add(new PDFLine("SIRET : " + this.companyData.getSiret()));
+            final PDFLine pdfLine = new PDFLine("SIRET : " + this.companyData.getSiret());
+            pdfLine.setFontColor(Color.GRAY);
+
+            lines.add(pdfLine);
         }
         if (this.companyData.getTvaCode() != null) {
-            lines.add(new PDFLine("N°TVA : " + this.companyData.getTvaCode()));
+            final PDFLine pdfLine = new PDFLine("N° TVA : " + this.companyData.getTvaCode());
+            pdfLine.setFontColor(Color.GRAY);
+
+            lines.add(pdfLine);
         }
 
-        super.margin = actualMargin;
         super.writePlainText(lines);
-
-        super.margin = initialMargin;
+        super.lineSpacing = baseSpacing;
         super.yPosition -= super.lineSpacing * 2;
     }
 }
