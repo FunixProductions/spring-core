@@ -80,7 +80,6 @@ public abstract class PDFGenerator implements Closeable {
         }
 
         this.pdfName = finalName;
-        newPage();
     }
 
     /**
@@ -89,8 +88,14 @@ public abstract class PDFGenerator implements Closeable {
      * @throws ApiException if an error occurs
      */
     public final void writePlainText(@NonNull final Collection<PDFLine> lines) throws ApiException {
+        if (contentStream == null || currentPage == null) {
+            log.error("Le PDF {} n'a pas été initialisé. Vous devez créer la première page.", this.pdfName);
+            throw new ApiException("Le PDF " + this.pdfName + " n'a pas été initialisé.");
+        }
+
         try {
             for (final PDFLine line : lines) {
+                if (line == null) continue;
                 final float fontSize = line.getFontSize();
                 final PDFont font = line.getFont();
 
@@ -213,9 +218,11 @@ public abstract class PDFGenerator implements Closeable {
         }
 
         try {
-            final String pdfName = this.pdfName + "_" + getTodayDateForPdfFinalName() + "_" + UUID.randomUUID() + (this.pdfName.endsWith(".pdf") ? "" : ".pdf");
+            final String finalName = this.pdfName + "_" +
+                    getTodayDateForPdfFinalName() + "_" +
+                    UUID.randomUUID() + (this.pdfName.endsWith(".pdf") ? "" : ".pdf");
 
-            final File pdfFile = new File(folderToStore, pdfName);
+            final File pdfFile = new File(folderToStore, finalName);
             pdfDocument.save(pdfFile);
             return pdfFile;
         } catch (final Exception e) {
