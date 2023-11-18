@@ -76,7 +76,7 @@ public abstract class PDFGeneratorWithHeaderAndFooter extends PDFGenerator {
     }
 
     @Override
-    protected final void newPage() throws ApiException {
+    public final void newPage() throws ApiException {
         super.newPage();
         this.setupHeader();
         this.setupFooter();

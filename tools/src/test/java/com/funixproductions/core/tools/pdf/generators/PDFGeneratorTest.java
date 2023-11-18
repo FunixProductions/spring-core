@@ -80,6 +80,7 @@ class PDFGeneratorTest {
     private static class PDFGeneratorImpl extends PDFGenerator {
         public PDFGeneratorImpl(String pdfName) {
             super(pdfName);
+            this.newPage();
         }
     }
 

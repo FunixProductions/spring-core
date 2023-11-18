@@ -157,7 +157,7 @@ public abstract class PDFGenerator implements Closeable {
     /**
      * Creates a new page in the PDF document.
      */
-    protected void newPage() throws ApiException {
+    public void newPage() throws ApiException {
         try {
             if (contentStream != null) {
                 contentStream.close();
