@@ -1,42 +1,64 @@
 package com.funixproductions.core.tools.pdf.entities;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.lang.Nullable;
 
-@Setter
-@Getter
-@RequiredArgsConstructor
-@AllArgsConstructor
-public class PDFCompanyData {
+/**
+ * This interface represents the data of a company.
+ */
+public interface PDFCompanyData {
 
+    /**
+     * @return the name of the company
+     */
     @Nullable
-    private String name;
+    String getName();
 
+    /**
+     * @return the address of the company
+     */
     @Nullable
-    private String address;
+    String getAddress();
 
+    /**
+     * @return the zip code of the company
+     */
     @Nullable
-    private String zipCode;
+    String getZipCode();
 
+    /**
+     * @return the city of the company
+     */
     @Nullable
-    private String city;
+    String getCity();
 
+    /**
+     * @return the phone number of the company
+     */
     @Nullable
-    private String phone;
+    String getPhone();
 
+    /**
+     * @return the email of the company
+     */
     @Nullable
-    private String email;
+    String getEmail();
 
+    /**
+     * @return the website of the company
+     */
     @Nullable
-    private String website;
+    String getWebsite();
 
+    /**
+     * @return the siret of the company
+     */
     @Nullable
-    private String siret;
+    String getSiret();
 
+    /**
+     * @return the tva code of the company
+     */
     @Nullable
-    private String tvaCode;
+    String getTvaCode();
 
 }

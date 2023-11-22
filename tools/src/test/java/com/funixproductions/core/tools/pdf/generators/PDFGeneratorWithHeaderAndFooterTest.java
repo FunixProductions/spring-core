@@ -4,6 +4,8 @@ import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.tools.classpath.ImageReaderClasspath;
 import com.funixproductions.core.tools.pdf.entities.PDFCompanyData;
 import com.funixproductions.core.tools.pdf.entities.PDFLine;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -13,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class PDFGeneratorWithHeaderAndFooterTest {
 
-    private static final PDFCompanyData PDF_COMPANY_DATA = new PDFCompanyData(
+    private static final CompanyData PDF_COMPANY_DATA = new CompanyData(
             "FunixProductions",
             "1 rue de la paix",
             "67000",
@@ -105,6 +107,20 @@ class PDFGeneratorWithHeaderAndFooterTest {
             ).getBytes(), "logo-pacifista.png");
             super.newPage();
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    private static class CompanyData implements PDFCompanyData {
+        private final String name;
+        private final String address;
+        private final String zipCode;
+        private final String city;
+        private final String phone;
+        private final String email;
+        private final String website;
+        private final String siret;
+        private final String tvaCode;
     }
 
 }

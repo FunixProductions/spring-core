@@ -2,6 +2,9 @@ package com.funixproductions.core.tools.pdf.entities;
 
 import lombok.NonNull;
 
+/**
+ * Extends this class to an object to be able to add it to an invoice.
+ */
 public interface InvoiceItem {
 
     /**
