@@ -41,7 +41,7 @@ class PDFGeneratorInvoiceTest {
 
     @Test
     void testInvoiceCreationSuccess() {
-        final List<InvoiceItem> itemsTest = generateRandomItems(10);
+        final List<InvoiceItem> itemsTest = generateRandomItems(30);
 
         assertDoesNotThrow(() -> {
             try (final PDFInvoiceTest pdf = new PDFInvoiceTest("successInvoicePdf", itemsTest)) {
@@ -60,7 +60,7 @@ class PDFGeneratorInvoiceTest {
             items.add(
                     new InvoiceItemTest(
                             "testItem " + i,
-                            "Une super description de test. " + UUID.randomUUID(),
+                            "Une super description de test. Le grade Pacifista, le Pacifista +, va vous permettre d'avoir des avantages exclusifs." + UUID.randomUUID(),
                             random.nextInt(100),
                             random.nextDouble(1000)
                     )

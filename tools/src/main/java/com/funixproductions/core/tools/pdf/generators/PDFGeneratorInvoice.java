@@ -4,20 +4,26 @@ import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.tools.pdf.entities.InvoiceItem;
 import com.funixproductions.core.tools.pdf.entities.PDFCompanyData;
 import lombok.NonNull;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFooter {
 
-    private static final float ROW_HEIGHT = 20;
+    private static final float ROW_HEIGHT_TAB_HEADER = 20;
+    private static final float ROW_HEIGHT = 10;
+    private static final float FONT_SIZE = 8;
 
-    private static final float ROW_ITEM_ID_WIDTH = 40;
+    private static final float ROW_ITEM_ID_WIDTH = 20;
     private static final float ROW_ITEM_NAME_WIDTH = 100;
-    private static final float ROW_ITEM_DESCRIPTION_WIDTH = 200;
+    private static final float ROW_ITEM_DESCRIPTION_WIDTH = 190;
     private static final float ROW_ITEM_AMOUNT_COUNT_WIDTH = 40;
-    private static final float ROW_ITEM_UNIT_PRICE_WIDTH = 60;
-    private static final float ROW_ITEM_TOTAL_PRICE_WIDTH = 60;
+    private static final float ROW_ITEM_UNIT_PRICE_WIDTH = 75;
+    private static final float ROW_ITEM_TOTAL_PRICE_WIDTH = 75;
     private static final float TABLE_WIDTH = 500;
 
     private final List<InvoiceItem> invoiceItems;
@@ -65,9 +71,11 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
         try {
             contentStream.setLineWidth(0.5f);
-            contentStream.setFont(DEFAULT_FONT, 8);
+            contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), FONT_SIZE);
 
             drawTabHeader();
+
+            contentStream.setFont(DEFAULT_FONT, FONT_SIZE);
 
             InvoiceItem item;
             float rowHeight;
@@ -76,7 +84,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
                 rowHeight = getRowHeightFromItem(item);
 
                 drawRectLine(rowHeight);
-                drawContentRaw(i, item, rowHeight);
+                drawContentRaw(i + 1, item, rowHeight);
                 downCursor(rowHeight);
             }
         } catch (Exception e) {
@@ -85,21 +93,59 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
     }
 
     private void drawTabHeader() throws ApiException {
-        drawRectLine(ROW_HEIGHT);
+        drawRectLine(ROW_HEIGHT_TAB_HEADER);
         drawContentRaw(
-                "N",
+                "N°",
                 "Produit",
                 "Description",
                 "Quantité",
                 "Prix Unitaire (HT)",
                 "Prix Total (HT)",
-                ROW_HEIGHT
+                ROW_HEIGHT_TAB_HEADER
         );
-        downCursor(ROW_HEIGHT);
+        downCursor(ROW_HEIGHT_TAB_HEADER);
     }
 
     private float getRowHeightFromItem(final InvoiceItem item) {
-        return 10;
+        float finalHeight = ROW_HEIGHT;
+        float lastHeight = countHeightForString(item.getInvoiceItemName(), ROW_ITEM_NAME_WIDTH);
+
+        if (lastHeight > finalHeight) {
+            finalHeight = lastHeight;
+        }
+        lastHeight = countHeightForString(item.getInvoiceItemDescription(), ROW_ITEM_DESCRIPTION_WIDTH);
+        if (lastHeight > finalHeight) {
+            finalHeight = lastHeight;
+        }
+
+        return finalHeight;
+    }
+
+    private float countHeightForString(final String line, final float maxLineWidth) throws ApiException {
+        float height = ROW_HEIGHT;
+        final String[] words = line.split(" ");
+        StringBuilder lineBuilder = new StringBuilder();
+        float wordWidth;
+
+        try {
+            for (final String word : words) {
+                wordWidth = DEFAULT_FONT.getStringWidth(lineBuilder + " " + word) / 1000 * FONT_SIZE;
+
+                if (wordWidth < (maxLineWidth - 2)) {
+                    if (!lineBuilder.isEmpty()) {
+                        lineBuilder.append(" ");
+                    }
+                    lineBuilder.append(word);
+                } else {
+                    height += ROW_HEIGHT + super.lineSpacing / 2;
+                    lineBuilder = new StringBuilder(word);
+                }
+            }
+
+            return height;
+        } catch (Exception e) {
+            throw new ApiException("Une erreur est survenue lors de la génération de la facture. Erreur de calcul de la taille d'une ligne dans la facture.", e);
+        }
     }
 
     private void drawRectLine(final float rowHeight) {
@@ -181,30 +227,70 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
         float marginToAdd = 0;
         int loopSize = margins.size();
         int i = 0;
+        float actualMargin;
 
         while (i < loopSize) {
-            drawCell(x + marginToAdd, y, datas.get(i));
-            marginToAdd += margins.get(i);
+            actualMargin = margins.get(i);
+
+            drawCell(x + marginToAdd, y, datas.get(i), actualMargin);
+            marginToAdd += actualMargin;
             ++i;
         }
     }
 
-    private void downCursor(final float yToRemove) {
-        yPosition -= yToRemove;
-        if (yPosition <= margin) {
-            newPage();
+    private void downCursor(final float yToRemove) throws ApiException {
+        try {
+            yPosition -= yToRemove;
+            if (yPosition <= margin) {
+                newPage();
+                contentStream.setFont(DEFAULT_FONT, FONT_SIZE);
+                contentStream.setLineWidth(0.5f);
+            }
+        } catch (IOException e) {
+            throw new ApiException("Une erreur est survenue lors de la génération de la facture. Ajout de page erreur.", e);
         }
     }
 
-    private void drawCell(final float x, final float y, final String text) throws ApiException {
+    private void drawCell(final float x, final float y, final String text, final float maxWidth) throws ApiException {
         try {
-            contentStream.beginText();
-            contentStream.newLineAtOffset(x, y);
-            contentStream.showText(text);
-            contentStream.endText();
+            final List<String> toWrite = new ArrayList<>();
+            final String[] words = text.split(" ");
+            StringBuilder lineBuilder = new StringBuilder();
+            float wordWidth;
+            float actualY = y;
+
+            for (final String word : words) {
+                wordWidth = DEFAULT_FONT.getStringWidth(lineBuilder + " " + word) / 1000 * FONT_SIZE;
+
+                if (wordWidth < maxWidth - 2) {
+                    if (!lineBuilder.isEmpty()) {
+                        lineBuilder.append(" ");
+                    }
+                    lineBuilder.append(word);
+                } else {
+                    toWrite.add(lineBuilder.toString());
+                    lineBuilder = new StringBuilder(word);
+                    actualY += ROW_HEIGHT;
+                }
+            }
+
+            toWrite.add(lineBuilder.toString());
+
+            for (final String line : toWrite) {
+                this.writeLine(line, x, actualY);
+                actualY -= ROW_HEIGHT;
+            }
+
         } catch (Exception e) {
             throw new ApiException("Erreur lors de l'écriture dans le tableau de la facture.", e);
         }
+    }
+
+    private void writeLine(final String line, final float x, final float y) throws IOException {
+        contentStream.beginText();
+        contentStream.newLineAtOffset(x, y);
+        contentStream.showText(line);
+        contentStream.endText();
     }
 
 }
