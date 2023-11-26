@@ -71,19 +71,26 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
     public final void init() throws ApiException {
         newPage();
 
-        super.writePlainText(Collections.singleton(new PDFLine(
-                "Client:",
-                20,
-                DEFAULT_FONT,
-                DEFAULT_FONT_COLOR
-        )));
-        super.setCompanyInfosHeader(this.clientData);
+        try {
+            contentStream.moveTo(margin, super.yPosition + super.lineSpacing * 2);
+            contentStream.lineTo(margin + TABLE_WIDTH, super.yPosition + super.lineSpacing * 2);
 
-        if (!Strings.isNullOrEmpty(this.invoiceDescription)) {
-            this.writePlainText(Collections.singleton(new PDFLine(this.invoiceDescription)));
+            super.writePlainText(Collections.singleton(new PDFLine(
+                    "Client:",
+                    20,
+                    DEFAULT_FONT,
+                    DEFAULT_FONT_COLOR
+            )));
+            super.setCompanyInfosHeader(this.clientData);
+
+            if (!Strings.isNullOrEmpty(this.invoiceDescription)) {
+                this.writePlainText(Collections.singleton(new PDFLine(this.invoiceDescription)));
+            }
+
+            drawTable();
+        } catch (IOException e) {
+            throw new ApiException("Erreur lors de la création de la ligne séparatrice sur la facture.", e);
         }
-
-        drawTable();
     }
 
     private void drawTable() throws ApiException {
