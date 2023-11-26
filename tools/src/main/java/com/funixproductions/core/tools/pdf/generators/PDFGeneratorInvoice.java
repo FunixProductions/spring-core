@@ -3,13 +3,17 @@ package com.funixproductions.core.tools.pdf.generators;
 import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.tools.pdf.entities.InvoiceItem;
 import com.funixproductions.core.tools.pdf.entities.PDFCompanyData;
+import com.funixproductions.core.tools.pdf.entities.PDFLine;
+import com.google.common.base.Strings;
 import lombok.NonNull;
+import lombok.Setter;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFooter {
@@ -30,6 +34,9 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
     @NonNull
     private final PDFCompanyData clientData;
+
+    @Setter
+    private String invoiceDescription;
 
     protected PDFGeneratorInvoice(@NonNull String pdfName,
                                   @NonNull PDFCompanyData companyData,
@@ -63,6 +70,19 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
     public final void init() throws ApiException {
         newPage();
+
+        super.writePlainText(Collections.singleton(new PDFLine(
+                "Client:",
+                20,
+                DEFAULT_FONT,
+                DEFAULT_FONT_COLOR
+        )));
+        super.setCompanyInfosHeader(this.clientData);
+
+        if (!Strings.isNullOrEmpty(this.invoiceDescription)) {
+            this.writePlainText(Collections.singleton(new PDFLine(this.invoiceDescription)));
+        }
+
         drawTable();
     }
 
@@ -71,6 +91,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
         try {
             contentStream.setLineWidth(0.5f);
+            contentStream.setNonStrokingColor(DEFAULT_FONT_COLOR);
             contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), FONT_SIZE);
 
             drawTabHeader();
@@ -244,6 +265,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
             if (yPosition <= margin) {
                 newPage();
                 contentStream.setFont(DEFAULT_FONT, FONT_SIZE);
+                contentStream.setNonStrokingColor(DEFAULT_FONT_COLOR);
                 contentStream.setLineWidth(0.5f);
             }
         } catch (IOException e) {

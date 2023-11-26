@@ -89,7 +89,7 @@ public abstract class PDFGeneratorWithHeaderAndFooter extends PDFGenerator {
      * @throws ApiException on error write pdf
      */
     protected void setupHeader() throws ApiException {
-        setCompanyInfosHeader();
+        setCompanyInfosHeader(companyData);
         setHeaderLogoOnNewPage();
     }
 
@@ -118,60 +118,60 @@ public abstract class PDFGeneratorWithHeaderAndFooter extends PDFGenerator {
         }
     }
 
-    private void setCompanyInfosHeader() throws ApiException {
-        if (this.companyData == null) return;
+    protected void setCompanyInfosHeader(@Nullable final PDFCompanyData companyData) throws ApiException {
+        if (companyData == null) return;
         final float baseSpacing = super.lineSpacing;
         final PDFont boldFont = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
         super.lineSpacing = 15;
 
         final List<PDFLine> lines = new ArrayList<>();
-        if (this.companyData.getName() != null) {
-            final PDFLine pdfLine = new PDFLine(this.companyData.getName());
+        if (companyData.getName() != null) {
+            final PDFLine pdfLine = new PDFLine(companyData.getName());
             pdfLine.setFontColor(Color.GRAY);
             pdfLine.setFont(boldFont);
 
             lines.add(pdfLine);
         }
-        if (this.companyData.getAddress() != null) {
-            final PDFLine pdfLine = new PDFLine(this.companyData.getAddress());
+        if (companyData.getAddress() != null) {
+            final PDFLine pdfLine = new PDFLine(companyData.getAddress());
             pdfLine.setFontColor(Color.GRAY);
             pdfLine.setFont(boldFont);
 
             lines.add(pdfLine);
         }
-        if (this.companyData.getZipCode() != null && this.companyData.getCity() != null) {
-            final PDFLine pdfLine = new PDFLine(this.companyData.getZipCode() + " " + this.companyData.getCity());
+        if (companyData.getZipCode() != null && companyData.getCity() != null) {
+            final PDFLine pdfLine = new PDFLine(companyData.getZipCode() + " " + companyData.getCity());
             pdfLine.setFontColor(Color.GRAY);
             pdfLine.setFont(boldFont);
 
             lines.add(pdfLine);
         }
-        if (this.companyData.getPhone() != null) {
-            final PDFLine pdfLine = new PDFLine(this.companyData.getPhone());
+        if (companyData.getPhone() != null) {
+            final PDFLine pdfLine = new PDFLine(companyData.getPhone());
             pdfLine.setFontColor(Color.GRAY);
 
             lines.add(pdfLine);
         }
-        if (this.companyData.getEmail() != null) {
-            final PDFLine pdfLine = new PDFLine(this.companyData.getEmail());
+        if (companyData.getEmail() != null) {
+            final PDFLine pdfLine = new PDFLine(companyData.getEmail());
             pdfLine.setFontColor(Color.GRAY);
 
             lines.add(pdfLine);
         }
-        if (this.companyData.getWebsite() != null) {
-            final PDFLine pdfLine = new PDFLine("Site internet : " + this.companyData.getWebsite());
+        if (companyData.getWebsite() != null) {
+            final PDFLine pdfLine = new PDFLine("Site internet : " + companyData.getWebsite());
             pdfLine.setFontColor(Color.GRAY);
 
             lines.add(pdfLine);
         }
-        if (this.companyData.getSiret() != null) {
-            final PDFLine pdfLine = new PDFLine("SIRET : " + this.companyData.getSiret());
+        if (companyData.getSiret() != null) {
+            final PDFLine pdfLine = new PDFLine("SIRET : " + companyData.getSiret());
             pdfLine.setFontColor(Color.GRAY);
 
             lines.add(pdfLine);
         }
-        if (this.companyData.getTvaCode() != null) {
-            final PDFLine pdfLine = new PDFLine("N° TVA : " + this.companyData.getTvaCode());
+        if (companyData.getTvaCode() != null) {
+            final PDFLine pdfLine = new PDFLine("N° TVA : " + companyData.getTvaCode());
             pdfLine.setFontColor(Color.GRAY);
 
             lines.add(pdfLine);
