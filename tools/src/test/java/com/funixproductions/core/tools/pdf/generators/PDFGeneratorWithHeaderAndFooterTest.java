@@ -111,7 +111,7 @@ class PDFGeneratorWithHeaderAndFooterTest {
 
     @Getter
     @AllArgsConstructor
-    private static class CompanyData implements PDFCompanyData {
+    public static class CompanyData implements PDFCompanyData {
         private final String name;
         private final String address;
         private final String zipCode;

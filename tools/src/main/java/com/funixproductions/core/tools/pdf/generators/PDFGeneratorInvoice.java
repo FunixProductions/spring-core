@@ -1,15 +1,24 @@
 package com.funixproductions.core.tools.pdf.generators;
 
+import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.tools.pdf.entities.InvoiceItem;
 import com.funixproductions.core.tools.pdf.entities.PDFCompanyData;
 import lombok.NonNull;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFooter {
+
+    private static final float ROW_HEIGHT = 20;
+
+    private static final float ROW_ITEM_ID_WIDTH = 40;
+    private static final float ROW_ITEM_NAME_WIDTH = 100;
+    private static final float ROW_ITEM_DESCRIPTION_WIDTH = 200;
+    private static final float ROW_ITEM_AMOUNT_COUNT_WIDTH = 40;
+    private static final float ROW_ITEM_UNIT_PRICE_WIDTH = 60;
+    private static final float ROW_ITEM_TOTAL_PRICE_WIDTH = 60;
+    private static final float TABLE_WIDTH = 500;
 
     private final List<InvoiceItem> invoiceItems;
 
@@ -46,61 +55,156 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
         this.clientData = clientData;
     }
 
-    public final void init() throws IOException {
+    public final void init() throws ApiException {
         newPage();
         drawTable();
     }
 
-    private void drawTable() throws IOException {
-        float x = super.margin;
-        float tableWidth = 500;
-        int rows = this.invoiceItems.size();
-        float tableHeight = 20f * rows;
-        float rowHeight = 20f;
-        float tableYLength = rowHeight * (float) (rows + 1);
-        float tableXLength = 495f;
+    private void drawTable() throws ApiException {
+        final int rows = this.invoiceItems.size();
 
-        contentStream.setLineWidth(1f);
-        contentStream.moveTo(x, super.yPosition);
-        contentStream.lineTo(x + tableWidth, super.yPosition);
-        contentStream.lineTo(x + tableWidth, super.yPosition - tableHeight);
-        contentStream.lineTo(x, super.yPosition - tableHeight);
-        contentStream.lineTo(x, super.yPosition);
+        try {
+            contentStream.setLineWidth(0.5f);
+            contentStream.setFont(DEFAULT_FONT, 8);
 
-        contentStream.moveTo(x, super.yPosition - rowHeight);
-        contentStream.lineTo(x + tableWidth, super.yPosition - rowHeight);
+            drawTabHeader();
 
-        for (int i = 0; i <= rows; ++i) {
-            contentStream.moveTo(x, yPosition - (i * rowHeight));
-            contentStream.lineTo(x + tableWidth, yPosition - (i * rowHeight));
-        }
+            InvoiceItem item;
+            float rowHeight;
+            for (int i = 0; i < rows; ++i) {
+                item = this.invoiceItems.get(i);
+                rowHeight = getRowHeightFromItem(item);
 
-        contentStream.stroke();
-
-        float xPosition = x + margin;
-        for (InvoiceItem item : this.invoiceItems) {
-            drawCell(contentStream, xPosition, yPosition, String.valueOf(item.getInvoiceItemQuantity()));
-            xPosition += 70f;
-            drawCell(contentStream, xPosition, yPosition, item.getInvoiceItemName());
-            xPosition += 200f;
-            drawCell(contentStream, xPosition, yPosition, item.getInvoiceItemPrice() + "€");
-            xPosition += 90f;
-            drawCell(contentStream, xPosition, yPosition, (item.getInvoiceItemQuantity() * item.getInvoiceItemPrice()) + "€");
-
-            yPosition -= rowHeight;
-            if (yPosition <= margin) {
-                newPage();
+                drawRectLine(rowHeight);
+                drawContentRaw(i, item, rowHeight);
+                downCursor(rowHeight);
             }
-
-            xPosition = x + margin;
+        } catch (Exception e) {
+            throw new ApiException("Impossible de créer le tableau de la facture.", e);
         }
     }
 
-    private void drawCell(PDPageContentStream contentStream, float x, float y, String text) throws IOException {
-        contentStream.beginText();
-        contentStream.newLineAtOffset(x, y);
-        contentStream.showText(text);
-        contentStream.endText();
+    private void drawTabHeader() throws ApiException {
+        drawRectLine(ROW_HEIGHT);
+        drawContentRaw(
+                "N",
+                "Produit",
+                "Description",
+                "Quantité",
+                "Prix Unitaire (HT)",
+                "Prix Total (HT)",
+                ROW_HEIGHT
+        );
+        downCursor(ROW_HEIGHT);
+    }
+
+    private float getRowHeightFromItem(final InvoiceItem item) {
+        return 10;
+    }
+
+    private void drawRectLine(final float rowHeight) {
+        try {
+            final float x = super.margin;
+            final List<Float> margins = List.of(
+                    ROW_ITEM_ID_WIDTH,
+                    ROW_ITEM_NAME_WIDTH,
+                    ROW_ITEM_DESCRIPTION_WIDTH,
+                    ROW_ITEM_AMOUNT_COUNT_WIDTH,
+                    ROW_ITEM_UNIT_PRICE_WIDTH,
+                    ROW_ITEM_TOTAL_PRICE_WIDTH
+            );
+            float marginToAdd = 0;
+
+            contentStream.moveTo(x, super.yPosition);
+            contentStream.lineTo(x + TABLE_WIDTH, super.yPosition);
+            contentStream.lineTo(x + TABLE_WIDTH, super.yPosition - rowHeight);
+            contentStream.lineTo(x, super.yPosition - rowHeight);
+            contentStream.lineTo(x, super.yPosition);
+
+            contentStream.moveTo(x, super.yPosition - rowHeight);
+            contentStream.lineTo(x + TABLE_WIDTH, super.yPosition - rowHeight);
+
+            for (float margin : margins) {
+                contentStream.moveTo(x + marginToAdd + margin, super.yPosition);
+                contentStream.lineTo(x + marginToAdd + margin, super.yPosition - rowHeight);
+                marginToAdd += margin;
+            }
+
+            contentStream.stroke();
+        } catch (Exception e) {
+            throw new ApiException("Impossible d'initialiser la facture, erreur lors de la mise en place du haut de tableau.", e);
+        }
+    }
+
+    private void drawContentRaw(final int rowNumber, final InvoiceItem item, final float rowHeight) throws ApiException {
+        try {
+            drawContentRaw(
+                    Integer.toString(rowNumber),
+                    item.getInvoiceItemName(),
+                    item.getInvoiceItemDescription(),
+                    Integer.toString(item.getInvoiceItemQuantity()),
+                    "€ " + String.format("%.4f", item.getInvoiceItemPrice()),
+                    "€ " + String.format("%.4f", item.getInvoiceItemQuantity() * item.getInvoiceItemPrice()),
+                    rowHeight
+            );
+        } catch (Exception e) {
+            throw new ApiException("Une erreur est survenue lors de l'ajout de données à une ligne de la facture.", e);
+        }
+    }
+
+    private void drawContentRaw(@NonNull final String rowNumber,
+                                @NonNull final String name,
+                                @NonNull final String description,
+                                @NonNull final String quantity,
+                                @NonNull final String price,
+                                @NonNull final String totalPrice,
+                                final float rowHeight) throws ApiException {
+        final float x = super.margin + 2;
+        final float y = super.yPosition - (rowHeight / 2 + rowHeight / 3);
+
+        final List<Float> margins = List.of(
+                ROW_ITEM_ID_WIDTH,
+                ROW_ITEM_NAME_WIDTH,
+                ROW_ITEM_DESCRIPTION_WIDTH,
+                ROW_ITEM_AMOUNT_COUNT_WIDTH,
+                ROW_ITEM_UNIT_PRICE_WIDTH,
+                ROW_ITEM_TOTAL_PRICE_WIDTH
+        );
+        final List<String> datas = List.of(
+                rowNumber,
+                name,
+                description,
+                quantity,
+                price,
+                totalPrice
+        );
+        float marginToAdd = 0;
+        int loopSize = margins.size();
+        int i = 0;
+
+        while (i < loopSize) {
+            drawCell(x + marginToAdd, y, datas.get(i));
+            marginToAdd += margins.get(i);
+            ++i;
+        }
+    }
+
+    private void downCursor(final float yToRemove) {
+        yPosition -= yToRemove;
+        if (yPosition <= margin) {
+            newPage();
+        }
+    }
+
+    private void drawCell(final float x, final float y, final String text) throws ApiException {
+        try {
+            contentStream.beginText();
+            contentStream.newLineAtOffset(x, y);
+            contentStream.showText(text);
+            contentStream.endText();
+        } catch (Exception e) {
+            throw new ApiException("Erreur lors de l'écriture dans le tableau de la facture.", e);
+        }
     }
 
 }
