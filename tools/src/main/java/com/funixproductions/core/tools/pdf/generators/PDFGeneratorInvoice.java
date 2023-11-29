@@ -4,6 +4,7 @@ import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.tools.pdf.entities.InvoiceItem;
 import com.funixproductions.core.tools.pdf.entities.PDFCompanyData;
 import com.funixproductions.core.tools.pdf.entities.PDFLine;
+import com.funixproductions.core.tools.time.TimeUtils;
 import com.google.common.base.Strings;
 import lombok.NonNull;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +39,12 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
     @Setter
     private String invoiceDescription;
+
+    @Setter
+    private String invoiceNumber;
+
+    @Setter
+    private String paymentMethod;
 
     protected PDFGeneratorInvoice(@NonNull String pdfName,
                                   @NonNull PDFCompanyData companyData,
@@ -75,13 +83,16 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
             contentStream.moveTo(margin, super.yPosition + super.lineSpacing * 2);
             contentStream.lineTo(margin + TABLE_WIDTH, super.yPosition + super.lineSpacing * 2);
 
+            final float yPos = super.yPosition;
             super.writePlainText(Collections.singleton(new PDFLine(
                     "Client:",
-                    20,
-                    DEFAULT_FONT,
+                    DEFAULT_FONT_SIZE + 5,
+                    new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD),
                     DEFAULT_FONT_COLOR
             )));
+
             super.setCompanyInfosHeader(this.clientData);
+            writeInvoiceInfos(yPos);
 
             if (!Strings.isNullOrEmpty(this.invoiceDescription)) {
                 this.writePlainText(Collections.singleton(new PDFLine(this.invoiceDescription)));
@@ -90,6 +101,34 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
             drawTable();
         } catch (IOException e) {
             throw new ApiException("Erreur lors de la création de la ligne séparatrice sur la facture.", e);
+        }
+    }
+
+    private void writeInvoiceInfos(final float yPosStart) throws ApiException {
+        final Instant now = Instant.now();
+        final float pageWidth = super.currentPage.getMediaBox().getWidth();
+        float xPos = pageWidth / 3 + pageWidth / 4;
+        float yPos = yPosStart;
+
+        try {
+            super.contentStream.setLineWidth(0.5f);
+            super.contentStream.moveTo(xPos - super.margin, yPos + super.lineSpacing);
+            super.contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE);
+
+            if (this.invoiceNumber != null) {
+                this.writeLine("Facture n° " + this.invoiceNumber, xPos, yPos);
+            }
+            yPos -= super.lineSpacing;
+            this.writeLine("Date : " + TimeUtils.getFrenchDateFromInstant(now), xPos, yPos);
+            yPos -= super.lineSpacing;
+            if (this.paymentMethod != null) {
+                this.writeLine("Méthode de paiement : " + this.paymentMethod, xPos, yPos);
+            }
+
+            super.contentStream.lineTo(xPos, yPos);
+            super.contentStream.stroke();
+        } catch (IOException e) {
+            throw new ApiException("Erreur lors de l'écriture des informations de facture.", e);
         }
     }
 
