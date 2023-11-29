@@ -103,12 +103,13 @@
         </repository>
     </repositories>
 
+    <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies -->
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>2022.0.3</version>
+                <version>2022.0.4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
