@@ -1,5 +1,6 @@
 package com.funixproductions.core.tools.pdf.entities;
 
+import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.tools.pdf.tools.VATInformation;
 import lombok.Getter;
 import lombok.NonNull;
@@ -37,7 +38,15 @@ public class InvoiceBillingTotal {
 
     public InvoiceBillingTotal(@NonNull final List<InvoiceItem> invoiceItems,
                                @Nullable final Double percentageDiscount,
-                               @Nullable final VATInformation taxInformation) {
+                               @Nullable final VATInformation taxInformation) throws ApiException {
+        if (percentageDiscount != null) {
+            if (percentageDiscount < 0) {
+                throw new ApiException("Il est impossible d'appliquer une réduction inférieure à 0.");
+            } else if (percentageDiscount > 100) {
+                throw new ApiException("Il est impossible d'appliquer une réduction supérieure à 100.");
+            }
+        }
+
         this.totalHtPriceNoDiscountAmount = calculateTotalHtItems(invoiceItems);
         this.discountAmount = calculateDiscount(percentageDiscount);
         this.totalHtPrice = calculateFinalHt();
@@ -45,10 +54,13 @@ public class InvoiceBillingTotal {
         this.totalTtcPrice = calculateFinalTtcPrice();
     }
 
-    private double calculateTotalHtItems(final List<InvoiceItem> invoiceItems) {
+    private double calculateTotalHtItems(final List<InvoiceItem> invoiceItems) throws ApiException {
         double total = 0.0;
 
         for (final InvoiceItem item : invoiceItems) {
+            if (item.getInvoiceItemPrice() < 0 || item.getInvoiceItemQuantity() < 1) {
+                throw new ApiException("Un item de la facture possède un prix négatif ou une quantité nulle ou négative.");
+            }
             total += item.getInvoiceItemPrice() * item.getInvoiceItemQuantity();
         }
         return total;
