@@ -60,4 +60,9 @@ public class TimeUtils {
         return now.toInstant(PARIS_ZONE_ID.getRules().getOffset(now));
     }
 
+    public static String getFrenchDateFromInstant(final Instant instant) {
+        final LocalDateTime now = LocalDateTime.ofInstant(instant, PARIS_ZONE_ID);
+        return now.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss", PARIS_LOCALE));
+    }
+
 }
