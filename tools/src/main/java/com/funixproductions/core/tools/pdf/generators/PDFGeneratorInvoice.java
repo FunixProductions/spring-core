@@ -1,17 +1,20 @@
 package com.funixproductions.core.tools.pdf.generators;
 
 import com.funixproductions.core.exceptions.ApiException;
+import com.funixproductions.core.tools.pdf.entities.InvoiceBillingTotal;
 import com.funixproductions.core.tools.pdf.entities.InvoiceItem;
 import com.funixproductions.core.tools.pdf.entities.PDFCompanyData;
 import com.funixproductions.core.tools.pdf.entities.PDFLine;
-import com.funixproductions.core.tools.pdf.entities.VATInformation;
+import com.funixproductions.core.tools.pdf.tools.VATInformation;
 import com.funixproductions.core.tools.time.TimeUtils;
 import com.google.common.base.Strings;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
@@ -32,6 +35,9 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
     private static final float ROW_ITEM_UNIT_PRICE_WIDTH = 75;
     private static final float ROW_ITEM_TOTAL_PRICE_WIDTH = 75;
     private static final float TABLE_WIDTH = 500;
+
+    private static final char DEVISE_LOGO = '€';
+    private static final String DEVISE_NAME = "Euros";
 
     private final List<InvoiceItem> invoiceItems;
 
@@ -69,19 +75,16 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
      * % de réduction sur la somme finale
      */
     @Setter
-    private float percentageDiscount;
-
-    /**
-     * montant de la réduction sur la somme finale
-     */
-    @Setter
-    private float amountDiscount;
+    private Double percentageDiscount;
 
     /**
      * Informations sur la TVA payée par le client.
      */
     @Setter
     private VATInformation vatInformation;
+
+    @Getter
+    private InvoiceBillingTotal billingTotalInformation;
 
     protected PDFGeneratorInvoice(@NonNull String pdfName,
                                   @NonNull PDFCompanyData companyData,
@@ -125,6 +128,10 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
         }
     }
 
+    /**
+     * Initialisation de la facture. Vérifier que tous les setters sont bien remplis pour ne pas avoir de soucis légaux !
+     * @throws ApiException en cas d'erreur d'init
+     */
     public final void init() throws ApiException {
         newPage();
 
@@ -134,7 +141,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
             final float yPos = super.yPosition;
             super.writePlainText(Collections.singleton(new PDFLine(
-                    "Client:",
+                    "Client :",
                     DEFAULT_FONT_SIZE + 5,
                     new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD),
                     DEFAULT_FONT_COLOR
@@ -149,6 +156,10 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
             }
 
             drawTable();
+            super.yPosition -= super.lineSpacing * 2;
+
+            checkBeforeWriteHeightAvailable(calculateTotalDataHeight());
+            drawTotalData();
         } catch (IOException e) {
             throw new ApiException("Erreur lors de la création de la ligne séparatrice sur la facture.", e);
         }
@@ -192,6 +203,48 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
         }
     }
 
+    private float calculateTotalDataHeight() throws ApiException {
+        float heightNeeded = DEFAULT_FONT_SIZE + 1 + super.lineSpacing;
+
+        if (this.percentageDiscount != null) {
+            heightNeeded += DEFAULT_FONT_SIZE * 2 + super.lineSpacing * 2;
+        }
+
+        return heightNeeded + DEFAULT_FONT_SIZE * 3 + super.lineSpacing * 3;
+    }
+
+    private void drawTotalData() throws ApiException {
+        this.billingTotalInformation = new InvoiceBillingTotal(
+                this.invoiceItems,
+                this.percentageDiscount,
+                this.vatInformation
+        );
+
+        final List<PDFLine> toWrite = new ArrayList<>(List.of(new PDFLine(
+                "Total de la facture :",
+                DEFAULT_FONT_SIZE + 1,
+                new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD),
+                DEFAULT_FONT_COLOR
+        )));
+
+        if (this.billingTotalInformation.getDiscountAmount() > 0 && this.percentageDiscount != null) {
+            toWrite.addAll(List.of(
+                            new PDFLine("Une réduction de " + formatPrice(this.percentageDiscount) + " % est appliquée à cette facture.", DEFAULT_FONT_SIZE, DEFAULT_FONT, Color.GRAY),
+                            new PDFLine(String.format("Remise : %s %s", DEVISE_LOGO, formatPrice(this.billingTotalInformation.getDiscountAmount())))
+                    )
+            );
+        }
+
+        final String vatAmount = this.vatInformation == null ? "0" : Double.toString(this.vatInformation.getVatRate());
+        toWrite.addAll(List.of(
+                new PDFLine(String.format("Total HT : %s %s", DEVISE_LOGO, formatPrice(this.billingTotalInformation.getTotalHtPrice()))),
+                new PDFLine("TVA " + vatAmount + " % : " + DEVISE_LOGO + ' ' + formatPrice(this.billingTotalInformation.getVatAmount())),
+                new PDFLine("Total TTC en " + DEVISE_NAME + " : " + DEVISE_LOGO + ' ' + formatPrice(this.billingTotalInformation.getTotalTtcPrice()))
+        ));
+
+        super.writePlainText(toWrite);
+    }
+
     private void drawTable() throws ApiException {
         final int rows = this.invoiceItems.size();
 
@@ -210,6 +263,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
                 item = this.invoiceItems.get(i);
                 rowHeight = getRowHeightFromItem(item);
 
+                checkBeforeWriteHeightAvailable(rowHeight);
                 drawRectLine(rowHeight);
                 drawContentRaw(i + 1, item, rowHeight);
                 downCursor(rowHeight);
@@ -316,8 +370,8 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
                     item.getInvoiceItemName(),
                     item.getInvoiceItemDescription(),
                     Integer.toString(item.getInvoiceItemQuantity()),
-                    "€ " + String.format("%.4f", item.getInvoiceItemPrice()),
-                    "€ " + String.format("%.4f", item.getInvoiceItemQuantity() * item.getInvoiceItemPrice()),
+                    DEVISE_LOGO + ' ' + formatPrice(item.getInvoiceItemPrice()),
+                    DEVISE_LOGO + ' ' + formatPrice(item.getInvoiceItemQuantity() * item.getInvoiceItemPrice()),
                     rowHeight
             );
         } catch (Exception e) {
@@ -379,6 +433,19 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
         }
     }
 
+    private void checkBeforeWriteHeightAvailable(final float yToDown) throws ApiException {
+        try {
+            if (yPosition - yToDown <= margin) {
+                newPage();
+                contentStream.setFont(DEFAULT_FONT, FONT_SIZE);
+                contentStream.setNonStrokingColor(DEFAULT_FONT_COLOR);
+                contentStream.setLineWidth(0.5f);
+            }
+        } catch (IOException e) {
+            throw new ApiException("Une erreur est survenue lors de la génération de la facture. Ajout de page erreur.", e);
+        }
+    }
+
     private void drawCell(final float x, final float y, final String text, final float maxWidth) throws ApiException {
         try {
             final List<String> toWrite = new ArrayList<>();
@@ -419,6 +486,10 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
         contentStream.newLineAtOffset(x, y);
         contentStream.showText(line);
         contentStream.endText();
+    }
+
+    private static String formatPrice(final double price) {
+        return String.format("%.4f", price);
     }
 
 }

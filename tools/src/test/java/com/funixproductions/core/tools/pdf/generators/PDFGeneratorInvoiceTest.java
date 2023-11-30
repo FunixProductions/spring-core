@@ -1,6 +1,7 @@
 package com.funixproductions.core.tools.pdf.generators;
 
 import com.funixproductions.core.tools.pdf.entities.InvoiceItem;
+import com.funixproductions.core.tools.pdf.tools.VATInformation;
 import lombok.*;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,8 @@ class PDFGeneratorInvoiceTest {
                 pdf.setInvoiceNumber(Integer.toString(new Random().nextInt(1000000)));
                 pdf.setCgvUrl("https://www.pacifista.fr/cgv");
                 pdf.setPaymentMethod("Paypal");
+                pdf.setVatInformation(VATInformation.FRANCE);
+                pdf.setPercentageDiscount(2.0);
                 pdf.setInvoiceDescription("Voici un document de test pour la génération de documents de facturation. Vous pouvez y mettre toutes les informations que vous voulez. Super le dev !");
                 pdf.init();
                 this.generatePdf(pdf);
@@ -64,7 +67,7 @@ class PDFGeneratorInvoiceTest {
             items.add(
                     new InvoiceItemTest(
                             "testItem " + i,
-                            "Une super description de test. Le grade Pacifista, le Pacifista +, va vous permettre d'avoir des avantages exclusifs." + UUID.randomUUID(),
+                            "Une super description de test. Le grade Pacifista, le Pacifista +, va vous permettre d'avoir des avantages exclusifs. " + UUID.randomUUID() + " randomNumber: " + random.nextInt(),
                             random.nextInt(100),
                             random.nextDouble(1000)
                     )

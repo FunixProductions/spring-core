@@ -1,4 +1,4 @@
-package com.funixproductions.core.tools.pdf.entities;
+package com.funixproductions.core.tools.pdf.tools;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
