@@ -4,6 +4,7 @@ import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.tools.pdf.entities.InvoiceItem;
 import com.funixproductions.core.tools.pdf.entities.PDFCompanyData;
 import com.funixproductions.core.tools.pdf.entities.PDFLine;
+import com.funixproductions.core.tools.pdf.entities.VATInformation;
 import com.funixproductions.core.tools.time.TimeUtils;
 import com.google.common.base.Strings;
 import lombok.NonNull;
@@ -34,17 +35,53 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
     private final List<InvoiceItem> invoiceItems;
 
+    /**
+     * Informations sur le client.
+     */
     @NonNull
     private final PDFCompanyData clientData;
 
+    /**
+     * Description de la facture.
+     */
     @Setter
     private String invoiceDescription;
 
+    /**
+     * Numéro de la facture.
+     */
     @Setter
     private String invoiceNumber;
 
+    /**
+     * Méthode de paiement.
+     */
     @Setter
     private String paymentMethod;
+
+    /**
+     * Lien vers les conditions de vente
+     */
+    @Setter
+    private String cgvUrl;
+
+    /**
+     * % de réduction sur la somme finale
+     */
+    @Setter
+    private float percentageDiscount;
+
+    /**
+     * montant de la réduction sur la somme finale
+     */
+    @Setter
+    private float amountDiscount;
+
+    /**
+     * Informations sur la TVA payée par le client.
+     */
+    @Setter
+    private VATInformation vatInformation;
 
     protected PDFGeneratorInvoice(@NonNull String pdfName,
                                   @NonNull PDFCompanyData companyData,
@@ -76,6 +113,18 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
         this.clientData = clientData;
     }
 
+    @Override
+    protected void setupHeader() throws ApiException {
+        super.setupHeader();
+        super.yPosition -= super.lineSpacing;
+
+        if (this.invoiceNumber != null) {
+            super.writePlainText(Collections.singleton(new PDFLine(
+                    "Facture n° " + this.invoiceNumber
+            )));
+        }
+    }
+
     public final void init() throws ApiException {
         newPage();
 
@@ -93,6 +142,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
             super.setCompanyInfosHeader(this.clientData);
             writeInvoiceInfos(yPos);
+            super.contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE);
 
             if (!Strings.isNullOrEmpty(this.invoiceDescription)) {
                 this.writePlainText(Collections.singleton(new PDFLine(this.invoiceDescription)));
@@ -107,25 +157,35 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
     private void writeInvoiceInfos(final float yPosStart) throws ApiException {
         final Instant now = Instant.now();
         final float pageWidth = super.currentPage.getMediaBox().getWidth();
-        float xPos = pageWidth / 3 + pageWidth / 4;
+        float xPos = pageWidth / 4 + pageWidth / 4;
         float yPos = yPosStart;
 
         try {
+            super.contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE - 4);
             super.contentStream.setLineWidth(0.5f);
-            super.contentStream.moveTo(xPos - super.margin, yPos + super.lineSpacing);
-            super.contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE);
+            super.contentStream.moveTo(xPos - super.margin / 2, yPos + super.lineSpacing * 2);
 
             if (this.invoiceNumber != null) {
                 this.writeLine("Facture n° " + this.invoiceNumber, xPos, yPos);
-            }
-            yPos -= super.lineSpacing;
-            this.writeLine("Date : " + TimeUtils.getFrenchDateFromInstant(now), xPos, yPos);
-            yPos -= super.lineSpacing;
-            if (this.paymentMethod != null) {
-                this.writeLine("Méthode de paiement : " + this.paymentMethod, xPos, yPos);
+                yPos -= super.lineSpacing;
             }
 
-            super.contentStream.lineTo(xPos, yPos);
+            final String dateBilling = TimeUtils.getFrenchDateFromInstant(now);
+            this.writeLine("Date de la facture : " + dateBilling, xPos, yPos);
+            yPos -= super.lineSpacing;
+            this.writeLine("Date de payment : " + dateBilling, xPos, yPos);
+            yPos -= super.lineSpacing;
+
+            if (this.paymentMethod != null) {
+                this.writeLine("Méthode de paiement : " + this.paymentMethod, xPos, yPos);
+                yPos -= super.lineSpacing;
+            }
+
+            if (this.cgvUrl != null) {
+                this.writeLine("Conditions générales de vente : " + this.cgvUrl, xPos, yPos);
+            }
+
+            super.contentStream.lineTo(xPos - super.margin / 2, yPos - super.lineSpacing);
             super.contentStream.stroke();
         } catch (IOException e) {
             throw new ApiException("Erreur lors de l'écriture des informations de facture.", e);

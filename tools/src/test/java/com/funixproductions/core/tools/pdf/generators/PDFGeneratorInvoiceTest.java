@@ -46,6 +46,8 @@ class PDFGeneratorInvoiceTest {
         assertDoesNotThrow(() -> {
             try (final PDFInvoiceTest pdf = new PDFInvoiceTest("successInvoicePdf", itemsTest)) {
                 pdf.setInvoiceNumber(Integer.toString(new Random().nextInt(1000000)));
+                pdf.setCgvUrl("https://www.pacifista.fr/cgv");
+                pdf.setPaymentMethod("Paypal");
                 pdf.setInvoiceDescription("Voici un document de test pour la génération de documents de facturation. Vous pouvez y mettre toutes les informations que vous voulez. Super le dev !");
                 pdf.init();
                 this.generatePdf(pdf);
