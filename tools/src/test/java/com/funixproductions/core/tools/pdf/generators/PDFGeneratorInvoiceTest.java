@@ -46,7 +46,7 @@ class PDFGeneratorInvoiceTest {
 
         assertDoesNotThrow(() -> {
             try (final PDFInvoiceTest pdf = new PDFInvoiceTest("successInvoicePdf", itemsTest)) {
-                pdf.setInvoiceNumber(Integer.toString(new Random().nextInt(1000000)));
+                pdf.setInvoiceNumber(Integer.toString(new Random().nextInt(1000000 - 1) + 1));
                 pdf.setCgvUrl("https://www.pacifista.fr/cgv");
                 pdf.setPaymentMethod("Paypal");
                 pdf.setVatInformation(VATInformation.FRANCE);
@@ -68,8 +68,8 @@ class PDFGeneratorInvoiceTest {
                     new InvoiceItemTest(
                             "testItem " + i,
                             "Une super description de test. Le grade Pacifista, le Pacifista +, va vous permettre d'avoir des avantages exclusifs. " + UUID.randomUUID() + " randomNumber: " + random.nextInt(),
-                            random.nextInt(100),
-                            random.nextDouble(1000)
+                            random.nextInt(100 - 1) + 1,
+                            random.nextDouble(1000 - 1) + 1
                     )
             );
             ++i;
