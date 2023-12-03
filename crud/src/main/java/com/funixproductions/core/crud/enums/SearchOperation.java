@@ -7,12 +7,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SearchOperation {
     EQUALS("eq"),
+    EQUALS_IGNORE_CASE("eqic"),
     NOT_EQUALS("neq"),
     GREATER_THAN("gt"),
     GREATER_THAN_OR_EQUAL_TO("gte"),
     LESS_THAN("lt"),
     LESS_THAN_OR_EQUAL_TO("lte"),
     LIKE("like"),
+    LIKE_IGNORE_CASE("likeic"),
     NOT_LIKE("nlike"),
     IS_TRUE("istrue"),
     IS_FALSE("isfalse"),

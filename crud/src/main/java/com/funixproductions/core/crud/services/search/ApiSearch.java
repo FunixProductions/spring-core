@@ -41,6 +41,16 @@ public class ApiSearch<ENTITY extends ApiEntity> implements Specification<ENTITY
                     case EQUALS -> {
                         return criteriaBuilder.equal(root.get(searchKeyParts[0]), valueSearch);
                     }
+                    case EQUALS_IGNORE_CASE -> {
+                        if (valueSearch instanceof final String value) {
+                            return criteriaBuilder.equal(
+                                    criteriaBuilder.lower(root.get(searchKeyParts[0])),
+                                    value.toLowerCase()
+                            );
+                        } else {
+                            throw new ApiBadRequestException("Impossible de faire un equals ignore case sur un type autre que String.");
+                        }
+                    }
                     case NOT_EQUALS -> {
                         return criteriaBuilder.notEqual(root.get(searchKeyParts[0]), valueSearch);
                     }
@@ -71,6 +81,16 @@ public class ApiSearch<ENTITY extends ApiEntity> implements Specification<ENTITY
                     case LIKE -> {
                         return criteriaBuilder.like(root.get(searchKeyParts[0]), "%" + valueSearch + "%");
                     }
+                    case LIKE_IGNORE_CASE -> {
+                        if (valueSearch instanceof final String value) {
+                            return criteriaBuilder.like(
+                                    criteriaBuilder.lower(root.get(searchKeyParts[0])),
+                                    "%" + value.toLowerCase() + "%"
+                            );
+                        } else {
+                            throw new ApiBadRequestException("Impossible de faire un like ignore case sur un type autre que String.");
+                        }
+                    }
                     case NOT_LIKE -> {
                         return criteriaBuilder.notLike(root.get(searchKeyParts[0]), "%" + valueSearch + "%");
                     }
@@ -97,6 +117,16 @@ public class ApiSearch<ENTITY extends ApiEntity> implements Specification<ENTITY
                 switch (search.getOperation()) {
                     case EQUALS -> {
                         return criteriaBuilder.equal(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch);
+                    }
+                    case EQUALS_IGNORE_CASE -> {
+                        if (valueSearch instanceof final String value) {
+                            return criteriaBuilder.equal(
+                                    criteriaBuilder.lower(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1])),
+                                    value.toLowerCase()
+                            );
+                        } else {
+                            throw new ApiBadRequestException("Impossible de faire un equals ignore case sur un type autre que String.");
+                        }
                     }
                     case NOT_EQUALS -> {
                         return criteriaBuilder.notEqual(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch);
@@ -127,6 +157,16 @@ public class ApiSearch<ENTITY extends ApiEntity> implements Specification<ENTITY
                     }
                     case LIKE -> {
                         return criteriaBuilder.like(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), "%" + valueSearch + "%");
+                    }
+                    case LIKE_IGNORE_CASE -> {
+                        if (valueSearch instanceof final String value) {
+                            return criteriaBuilder.like(
+                                    criteriaBuilder.lower(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1])),
+                                    "%" + value.toLowerCase() + "%"
+                            );
+                        } else {
+                            throw new ApiBadRequestException("Impossible de faire un like ignore case sur un type autre que String.");
+                        }
                     }
                     case NOT_LIKE -> {
                         return criteriaBuilder.notLike(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), "%" + valueSearch + "%");

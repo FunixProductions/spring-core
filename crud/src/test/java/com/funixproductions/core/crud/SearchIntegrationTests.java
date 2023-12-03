@@ -1,7 +1,6 @@
 package com.funixproductions.core.crud;
 
 import com.funixproductions.core.TestApp;
-import com.funixproductions.core.test.beans.JsonHelper;
 import com.funixproductions.core.crud.doc.dtos.TestDTO;
 import com.funixproductions.core.crud.doc.entities.TestEntity;
 import com.funixproductions.core.crud.doc.enums.TestEnum;
@@ -11,6 +10,7 @@ import com.funixproductions.core.crud.doc.repositories.TestSubRepository;
 import com.funixproductions.core.crud.doc.services.TestService;
 import com.funixproductions.core.crud.dtos.PageDTO;
 import com.funixproductions.core.crud.enums.SearchOperation;
+import com.funixproductions.core.test.beans.JsonHelper;
 import com.funixproductions.core.tools.time.TimeUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -249,6 +248,32 @@ class SearchIntegrationTests {
     }
 
     @Test
+    void testSearchEqualsIgnoreCase() {
+        final String textToSearch = "ouiData" + UUID.randomUUID();
+
+        TestDTO testDTO = new TestDTO();
+        testDTO.setData(textToSearch);
+        this.testService.create(testDTO);
+
+        PageDTO<TestDTO> response = this.testService.getAll("", "", String.format("data:%s:%s", SearchOperation.EQUALS_IGNORE_CASE.getOperation(), textToSearch.toLowerCase()), "");
+        assertEquals(1, response.getTotalElementsThisPage());
+        assertEquals(textToSearch, response.getContent().get(0).getData());
+    }
+
+    @Test
+    void testSearchLikeIgnoreCase() {
+        final String textToSearch = "ouiData" + UUID.randomUUID();
+
+        TestDTO testDTO = new TestDTO();
+        testDTO.setData(textToSearch);
+        this.testService.create(testDTO);
+
+        PageDTO<TestDTO> response = this.testService.getAll("", "", String.format("data:%s:%s", SearchOperation.LIKE_IGNORE_CASE.getOperation(), textToSearch.toLowerCase()), "");
+        assertEquals(1, response.getTotalElementsThisPage());
+        assertEquals(textToSearch, response.getContent().get(0).getData());
+    }
+
+    @Test
     void testSearchErrorString() throws Exception {
         checkSearchFail("data-ouiData");
         checkSearchFail("oui:");
@@ -261,6 +286,8 @@ class SearchIntegrationTests {
         checkSearchFail("data:" + SearchOperation.EQUALS);
         checkSearchFail("data:" + SearchOperation.EQUALS + ":oui,oui:d");
         checkSearchFail("proutDDDDDDD:" + SearchOperation.EQUALS + ":oui");
+        checkSearchFail("number:" + SearchOperation.EQUALS_IGNORE_CASE + ":10");
+        checkSearchFail("number:" + SearchOperation.LIKE_IGNORE_CASE + ":10");
     }
 
     private void checkSearchSuccess(final TestDTO toCheck, final String search) throws Exception {
