@@ -11,6 +11,7 @@
 
     <groupId>com.funixproductions.core.files</groupId>
     <artifactId>funixproductions-storage</artifactId>
+    <name>funixproductions-storage</name>
 
     <properties>
         <maven.compiler.source>${java.version}</maven.compiler.source>

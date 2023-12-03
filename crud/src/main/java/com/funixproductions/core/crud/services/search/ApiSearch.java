@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Field;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
@@ -186,6 +187,8 @@ public class ApiSearch<ENTITY extends ApiEntity> implements Specification<ENTITY
                 return Float.valueOf(value);
             } else if (fieldType.isAssignableFrom(Date.class)) {
                 return Date.from(Instant.parse(value));
+            } else if (fieldType.isAssignableFrom(Timestamp.class)) {
+                return Timestamp.from(Instant.parse(value));
             } else if (fieldType.isAnnotationPresent(Entity.class)) {
                 return retrieveTypeFromEntity(root, fieldType, value);
             } else {
