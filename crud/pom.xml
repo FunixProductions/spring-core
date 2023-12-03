@@ -71,12 +71,6 @@
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-okhttp</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.funixproductions.core.exceptions</groupId>
-            <artifactId>exceptions</artifactId>
-            <version>1.0.7.3</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
     <build>
