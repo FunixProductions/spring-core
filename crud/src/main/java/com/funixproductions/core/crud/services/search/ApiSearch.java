@@ -3,6 +3,7 @@ package com.funixproductions.core.crud.services.search;
 import com.funixproductions.core.crud.entities.ApiEntity;
 import com.funixproductions.core.exceptions.ApiBadRequestException;
 import jakarta.persistence.Entity;
+import jakarta.persistence.criteria.*;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
