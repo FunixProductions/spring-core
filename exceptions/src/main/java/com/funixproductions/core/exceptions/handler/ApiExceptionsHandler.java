@@ -5,9 +5,9 @@ import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.exceptions.ApiForbiddenException;
 import com.funixproductions.core.exceptions.ApiNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -29,30 +29,28 @@ public class ApiExceptionsHandler {
     @ExceptionHandler(ApiBadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleBadRequest(ApiBadRequestException e) {
-        log.debug("Api Bad Request Exception ", e);
         return handleException(e, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ApiForbiddenException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiExceptionResponse handleForbidden(ApiForbiddenException e) {
-        log.debug("Api Forbidden Exception ", e);
         return handleException(e, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(ApiNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiExceptionResponse handleNotFound(ApiNotFoundException e) {
-        log.debug("Api Not Found Exception ", e);
         return handleException(e, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleValidationException(MethodArgumentNotValidException ex) {
         final BindingResult bindingResult = ex.getBindingResult();
         final List<String> errorMessages = bindingResult.getFieldErrors()
                 .stream()
-                .map(this::buildErrorMessage)
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .toList();
         final String errorMessage = String.join(", ", errorMessages);
 
@@ -60,10 +58,6 @@ public class ApiExceptionsHandler {
                 "Erreur requête : " + errorMessage,
                 HttpStatus.BAD_REQUEST.value()
         );
-    }
-
-    private String buildErrorMessage(FieldError fieldError) {
-        return fieldError.getField() + " " + fieldError.getDefaultMessage();
     }
 
     private ApiExceptionResponse handleException(Exception e, HttpStatus status) {

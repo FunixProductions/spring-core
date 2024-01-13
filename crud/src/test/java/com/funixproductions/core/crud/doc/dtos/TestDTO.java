@@ -15,7 +15,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestDTO extends ApiDTO {
-    @NotBlank
+    @NotBlank(message = "Le champ data est obligatoire")
     private String data;
     private Integer number;
     private Date date;
