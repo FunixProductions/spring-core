@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>3.2.1</version>
         <relativePath/>
     </parent>
 
@@ -50,13 +50,13 @@
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
         <maven.compiler.version>3.12.1</maven.compiler.version>
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
-        <io.jsonwebtoken.version>0.11.5</io.jsonwebtoken.version>
+        <io.jsonwebtoken.version>0.12.3</io.jsonwebtoken.version>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-configuration-processor -->
-        <org.springframework.boot.annotation.version>3.2.0</org.springframework.boot.annotation.version>
+        <org.springframework.boot.annotation.version>3.2.1</org.springframework.boot.annotation.version>
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <org.postgresql.version>42.6.0</org.postgresql.version>
+        <org.postgresql.version>42.7.1</org.postgresql.version>
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
-        <org.flywaydb.version>9.22.2</org.flywaydb.version>
+        <org.flywaydb.version>10.6.0</org.flywaydb.version>
         <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
         <org.apache.pdfbox.version>3.0.1</org.apache.pdfbox.version>
     </properties>
