@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.funixproductions.core</groupId>
         <artifactId>funixproductions-core</artifactId>
-        <version>1.1.0.2</version>
+        <version>1.1.0.3</version>
     </parent>
 
     <groupId>com.funixproductions.core.exceptions</groupId>
