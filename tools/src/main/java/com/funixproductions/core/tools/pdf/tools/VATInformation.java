@@ -2,6 +2,7 @@ package com.funixproductions.core.tools.pdf.tools;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.Nullable;
 
 /**
  * VAT information on countries.
@@ -46,5 +47,34 @@ public enum VATInformation {
 
     private final double vatRate;
     private final String countryCode;
+
+    @Nullable
+    public static VATInformation getVATInformation(String countryCode) {
+        for (final VATInformation vatInformation : VATInformation.values()) {
+            if (vatInformation.getCountryCode().equalsIgnoreCase(countryCode)) {
+                return vatInformation;
+            }
+        }
+        return null;
+    }
+
+    public static double getVATRate(String countryCode) {
+        final VATInformation vatInformation = getVATInformation(countryCode);
+
+        if (vatInformation != null) {
+            return vatInformation.getVatRate();
+        }
+        return 0.0;
+    }
+
+    @Nullable
+    public static VATInformation isRateValid(double vatRate) {
+        for (final VATInformation vatInformation : VATInformation.values()) {
+            if (vatInformation.getVatRate() == vatRate) {
+                return vatInformation;
+            }
+        }
+        return null;
+    }
 
 }
