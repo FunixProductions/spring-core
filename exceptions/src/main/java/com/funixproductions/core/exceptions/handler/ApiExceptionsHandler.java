@@ -5,7 +5,6 @@ import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.exceptions.ApiForbiddenException;
 import com.funixproductions.core.exceptions.ApiNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -48,15 +47,18 @@ public class ApiExceptionsHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleValidationException(MethodArgumentNotValidException ex) {
         final BindingResult bindingResult = ex.getBindingResult();
-        final List<String> errorMessages = bindingResult.getFieldErrors()
+        final List<ApiExceptionResponse.FieldError> fieldErrors = bindingResult.getFieldErrors()
                 .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .map(fieldError -> new ApiExceptionResponse.FieldError(
+                        fieldError.getField(),
+                        fieldError.getDefaultMessage()
+                ))
                 .toList();
-        final String errorMessage = String.join(", ", errorMessages);
 
         return new ApiExceptionResponse(
-                "Erreur requête : " + errorMessage,
-                HttpStatus.BAD_REQUEST.value()
+                "La requête est invalide",
+                HttpStatus.BAD_REQUEST.value(),
+                fieldErrors
         );
     }
 
