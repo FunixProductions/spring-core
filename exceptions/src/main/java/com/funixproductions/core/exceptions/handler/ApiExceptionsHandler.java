@@ -62,6 +62,23 @@ public class ApiExceptionsHandler {
         );
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleIllegalArgumentException(IllegalArgumentException e) {
+        return handleException(e, HttpStatus.BAD_REQUEST);
+    }
+
+    // Generic exception handler for any other unhandled exceptions
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiExceptionResponse handleGenericException(Exception ex) {
+        log.error("Unhandled Exception", ex);
+        return new ApiExceptionResponse(
+                "Une erreur interne est survenue.",
+                HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
+    }
+
     private ApiExceptionResponse handleException(Exception e, HttpStatus status) {
         return new ApiExceptionResponse(
                 e.getMessage(),
