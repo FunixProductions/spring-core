@@ -1,9 +1,6 @@
 package com.funixproductions.core.exceptions.handler;
 
-import com.funixproductions.core.exceptions.ApiBadRequestException;
-import com.funixproductions.core.exceptions.ApiException;
-import com.funixproductions.core.exceptions.ApiForbiddenException;
-import com.funixproductions.core.exceptions.ApiNotFoundException;
+import com.funixproductions.core.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -43,6 +40,12 @@ public class ApiExceptionsHandler {
         return handleException(e, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ApiUnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiExceptionResponse handleUnauthorized(ApiUnauthorizedException e) {
+        return handleException(e, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleValidationException(MethodArgumentNotValidException ex) {
@@ -56,26 +59,9 @@ public class ApiExceptionsHandler {
                 .toList();
 
         return new ApiExceptionResponse(
-                "La requête est invalide",
+                "La requête est invalide. Veuillez vérifier les champs.",
                 HttpStatus.BAD_REQUEST.value(),
                 fieldErrors
-        );
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleIllegalArgumentException(IllegalArgumentException e) {
-        return handleException(e, HttpStatus.BAD_REQUEST);
-    }
-
-    // Generic exception handler for any other unhandled exceptions
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiExceptionResponse handleGenericException(Exception ex) {
-        log.error("Unhandled Exception", ex);
-        return new ApiExceptionResponse(
-                "Une erreur interne est survenue.",
-                HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
     }
 
