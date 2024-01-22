@@ -7,6 +7,7 @@ import com.funixproductions.core.exceptions.ApiNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -65,7 +66,19 @@ public class ApiExceptionsHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleIllegalArgumentException(IllegalArgumentException e) {
-        return handleException(e, HttpStatus.BAD_REQUEST);
+        return new ApiExceptionResponse(
+                String.format("La requête est invalide : %s", e.getMessage()),
+                HttpStatus.BAD_REQUEST.value()
+        );
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+        return new ApiExceptionResponse(
+                String.format("La requête est invalide : %s", e.getMessage()),
+                HttpStatus.BAD_REQUEST.value()
+        );
     }
 
     // Generic exception handler for any other unhandled exceptions
