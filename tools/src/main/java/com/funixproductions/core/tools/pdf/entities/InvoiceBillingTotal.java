@@ -36,7 +36,7 @@ public class InvoiceBillingTotal {
      */
     private final double totalTtcPrice;
 
-    public InvoiceBillingTotal(@NonNull final List<InvoiceItem> invoiceItems,
+    public InvoiceBillingTotal(@NonNull final List<? extends InvoiceItem> invoiceItems,
                                @Nullable final Double percentageDiscount,
                                @Nullable final VATInformation taxInformation) throws ApiException {
         if (percentageDiscount != null) {
@@ -54,7 +54,7 @@ public class InvoiceBillingTotal {
         this.totalTtcPrice = calculateFinalTtcPrice();
     }
 
-    private double calculateTotalHtItems(final List<InvoiceItem> invoiceItems) throws ApiException {
+    private double calculateTotalHtItems(final List<? extends InvoiceItem> invoiceItems) throws ApiException {
         double total = 0.0;
 
         for (final InvoiceItem item : invoiceItems) {

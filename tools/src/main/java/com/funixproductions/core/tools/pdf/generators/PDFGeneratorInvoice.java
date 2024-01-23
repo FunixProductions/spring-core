@@ -39,7 +39,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
     private static final char DEVISE_LOGO = '€';
     private static final String DEVISE_NAME = "Euros";
 
-    private final List<InvoiceItem> invoiceItems;
+    private final List<? extends InvoiceItem> invoiceItems;
 
     /**
      * Informations sur le client.
@@ -88,7 +88,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
     protected PDFGeneratorInvoice(@NonNull String pdfName,
                                   @NonNull PDFCompanyData companyData,
-                                  @NonNull List<InvoiceItem> invoiceItems,
+                                  @NonNull List<? extends InvoiceItem> invoiceItems,
                                   @NonNull PDFCompanyData clientData) {
         super(pdfName, companyData);
         this.invoiceItems = invoiceItems;
@@ -98,7 +98,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
     protected PDFGeneratorInvoice(@NonNull String pdfName,
                                   @NonNull PDFCompanyData companyData,
                                   @NonNull File headerLogoFile,
-                                  @NonNull List<InvoiceItem> invoiceItems,
+                                  @NonNull List<? extends InvoiceItem> invoiceItems,
                                   @NonNull PDFCompanyData clientData) {
         super(pdfName, companyData, headerLogoFile);
         this.invoiceItems = invoiceItems;
@@ -109,7 +109,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
                                   @NonNull PDFCompanyData companyData,
                                   byte[] imageByteArray,
                                   @NonNull String imageName,
-                                  @NonNull List<InvoiceItem> invoiceItems,
+                                  @NonNull List<? extends InvoiceItem> invoiceItems,
                                   @NonNull PDFCompanyData clientData) {
         super(pdfName, companyData, imageByteArray, imageName);
         this.invoiceItems = invoiceItems;
