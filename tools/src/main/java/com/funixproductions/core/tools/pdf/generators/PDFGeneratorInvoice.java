@@ -36,7 +36,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
     private static final float ROW_ITEM_TOTAL_PRICE_WIDTH = 75;
     private static final float TABLE_WIDTH = 500;
 
-    private static final char DEVISE_LOGO = '€';
+    private static final String DEVISE_LOGO = "€";
     private static final String DEVISE_NAME = "Euros";
 
     private final List<? extends InvoiceItem> invoiceItems;

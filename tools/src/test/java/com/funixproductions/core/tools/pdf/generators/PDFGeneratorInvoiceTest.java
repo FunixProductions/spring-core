@@ -41,6 +41,26 @@ class PDFGeneratorInvoiceTest {
     );
 
     @Test
+    void testGenerationWithManualInfo() {
+        final List<InvoiceItemTest> itemsTest = List.of(
+                new InvoiceItemTest("testItem 1", "Une super description de test. Le grade Pacifista, le Pacifista +, va vous permettre d'avoir des avantages exclusifs. " + UUID.randomUUID(), 1, 10.0),
+                new InvoiceItemTest("testItem 2", "Une super description de test. Le grade Pacifista, le Pacifista +, va vous permettre d'avoir des avantages exclusifs. " + UUID.randomUUID(), 2, 20.0)
+        );
+
+        assertDoesNotThrow(() -> {
+            try (final PDFInvoiceTest pdf = new PDFInvoiceTest("manualInvoicePdf", itemsTest)) {
+                pdf.setInvoiceNumber("FP-0001224");
+                pdf.setCgvUrl("https://www.pacifista.fr/cgv");
+                pdf.setPaymentMethod("Paypal");
+                pdf.setVatInformation(VATInformation.FRANCE);
+                pdf.setInvoiceDescription("Voici un document de test pour la génération de documents de facturation. Vous pouvez y mettre toutes les informations que vous voulez. Super le dev !");
+                pdf.init();
+                this.generatePdf(pdf);
+            }
+        });
+    }
+
+    @Test
     void testInvoiceCreationSuccess() {
         final List<InvoiceItem> itemsTest = generateRandomItems(30);
 
@@ -78,7 +98,7 @@ class PDFGeneratorInvoiceTest {
     }
 
     private static class PDFInvoiceTest extends PDFGeneratorInvoice {
-        public PDFInvoiceTest(final String pdfName, final List<InvoiceItem> invoiceItems) {
+        public PDFInvoiceTest(final String pdfName, final List<? extends InvoiceItem> invoiceItems) {
             super(pdfName, PDF_COMPANY_DATA, new File("target/test-classes/logo-pacifista.png"), invoiceItems, PDF_BUYER_DATA);
         }
     }

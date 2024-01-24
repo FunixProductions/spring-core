@@ -95,7 +95,7 @@ public class InvoiceBillingTotal {
             return this.totalHtPrice;
         }
 
-        return this.totalHtPrice - vatAmount;
+        return this.totalHtPrice + vatAmount;
     }
 
 }

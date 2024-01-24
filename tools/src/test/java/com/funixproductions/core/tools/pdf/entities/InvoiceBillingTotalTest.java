@@ -75,7 +75,7 @@ class InvoiceBillingTotalTest {
         final double amountDiscount = percentageDiscount == null ? 0 : totalHtBeforeDiscount * (percentageDiscount / 100);
         final double priceHt = totalHtBeforeDiscount - amountDiscount;
         final double vatAmount = vatInformation == null ? 0 : priceHt * (vatInformation.getVatRate() / 100);
-        final double totalTtc = priceHt - vatAmount;
+        final double totalTtc = priceHt + vatAmount;
 
         assertEquals(totalHtBeforeDiscount, invoiceBillingTotal.getTotalHtPriceNoDiscountAmount());
         assertEquals(amountDiscount, invoiceBillingTotal.getDiscountAmount());
