@@ -126,6 +126,7 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
                     "Facture n° " + this.invoiceNumber
             )));
         }
+        super.yPosition -= super.lineSpacing * 2;
     }
 
     /**
@@ -137,24 +138,19 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
 
         try {
             contentStream.moveTo(margin, super.yPosition + super.lineSpacing * 2);
-            contentStream.lineTo(margin + TABLE_WIDTH, super.yPosition + super.lineSpacing * 2);
-
-            final float yPos = super.yPosition;
-            super.writePlainText(Collections.singleton(new PDFLine(
-                    "Client :",
-                    DEFAULT_FONT_SIZE + 5,
-                    new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD),
-                    DEFAULT_FONT_COLOR
-            )));
 
             super.setCompanyInfosHeader(this.clientData);
-            writeInvoiceInfos(yPos);
-            super.contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE);
+            writeInvoiceInfos();
+
+            contentStream.moveTo(margin, super.yPosition + super.lineSpacing * 2);
+
+            super.yPosition -= super.lineSpacing * 2;
 
             if (!Strings.isNullOrEmpty(this.invoiceDescription)) {
                 this.writePlainText(Collections.singleton(new PDFLine(this.invoiceDescription)));
             }
 
+            newPage();
             drawTable();
             super.yPosition -= super.lineSpacing * 2;
 
@@ -165,42 +161,33 @@ public abstract class PDFGeneratorInvoice extends PDFGeneratorWithHeaderAndFoote
         }
     }
 
-    private void writeInvoiceInfos(final float yPosStart) throws ApiException {
+    private void writeInvoiceInfos() throws ApiException {
         final Instant now = Instant.now();
-        final float pageWidth = super.currentPage.getMediaBox().getWidth();
-        float xPos = pageWidth / 4 + pageWidth / 4;
-        float yPos = yPosStart;
+        final List<PDFLine> lines = new ArrayList<>();
 
-        try {
-            super.contentStream.setFont(DEFAULT_FONT, DEFAULT_FONT_SIZE - 4);
-            super.contentStream.setLineWidth(0.5f);
-            super.contentStream.moveTo(xPos - super.margin / 2, yPos + super.lineSpacing * 2);
-
-            if (this.invoiceNumber != null) {
-                this.writeLine("Facture n° " + this.invoiceNumber, xPos, yPos);
-                yPos -= super.lineSpacing;
-            }
-
-            final String dateBilling = TimeUtils.getFrenchDateFromInstant(now);
-            this.writeLine("Date de la facture : " + dateBilling, xPos, yPos);
-            yPos -= super.lineSpacing;
-            this.writeLine("Date de payment : " + dateBilling, xPos, yPos);
-            yPos -= super.lineSpacing;
-
-            if (this.paymentMethod != null) {
-                this.writeLine("Méthode de paiement : " + this.paymentMethod, xPos, yPos);
-                yPos -= super.lineSpacing;
-            }
-
-            if (this.cgvUrl != null) {
-                this.writeLine("Conditions générales de vente : " + this.cgvUrl, xPos, yPos);
-            }
-
-            super.contentStream.lineTo(xPos - super.margin / 2, yPos - super.lineSpacing);
-            super.contentStream.stroke();
-        } catch (IOException e) {
-            throw new ApiException("Erreur lors de l'écriture des informations de facture.", e);
+        if (this.invoiceNumber != null) {
+            lines.add(createInvoiceInfoLine("Facture n° " + this.invoiceNumber));
         }
+
+        final String dateBilling = TimeUtils.getFrenchDateFromInstant(now);
+        lines.addAll(List.of(
+                createInvoiceInfoLine("Date de la facture : " + dateBilling),
+                createInvoiceInfoLine("Date de payment : " + dateBilling)
+        ));
+
+        if (this.paymentMethod != null) {
+            lines.add(createInvoiceInfoLine("Méthode de paiement : " + this.paymentMethod));
+        }
+
+        if (this.cgvUrl != null) {
+            lines.add(createInvoiceInfoLine("Conditions générales de vente : " + this.cgvUrl));
+        }
+
+        super.writePlainText(lines);
+    }
+
+    private PDFLine createInvoiceInfoLine(final String text) {
+        return new PDFLine(text, DEFAULT_FONT_SIZE - 3, DEFAULT_FONT, Color.GRAY);
     }
 
     private float calculateTotalDataHeight() throws ApiException {
