@@ -1,5 +1,6 @@
 package com.funixproductions.core.files.services;
 
+import com.funixproductions.core.crud.mappers.ApiMapper;
 import com.funixproductions.core.crud.repositories.ApiRepository;
 import com.funixproductions.core.crud.services.ApiService;
 import com.funixproductions.core.exceptions.ApiBadRequestException;
@@ -7,7 +8,6 @@ import com.funixproductions.core.exceptions.ApiException;
 import com.funixproductions.core.files.clients.StorageCrudClient;
 import com.funixproductions.core.files.dtos.ApiStorageFileDTO;
 import com.funixproductions.core.files.entities.ApiStorageFile;
-import com.funixproductions.core.files.mappers.ApiStorageMapper;
 import com.google.common.base.Strings;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
@@ -16,9 +16,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.geom.IllegalPathStateException;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -29,7 +27,7 @@ import java.nio.file.Path;
 @Slf4j
 public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         ENTITY extends ApiStorageFile,
-        MAPPER extends ApiStorageMapper<ENTITY, DTO>,
+        MAPPER extends ApiMapper<ENTITY, DTO>,
         REPOSITORY extends ApiRepository<ENTITY>> extends ApiService<DTO, ENTITY, MAPPER, REPOSITORY> implements StorageCrudClient<DTO> {
 
     private static final String STORAGE_DIRECTORY = "storage-files";
@@ -56,13 +54,14 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
      * Store a file in the storage directory
      * @param multipartFile the file to store, can't be null or empty
      */
+    @Override
     @Transactional
-    public DTO store(final MultipartFile multipartFile) {
+    public DTO store(final DTO request, final MultipartFile multipartFile) {
         if (multipartFile == null || Strings.isNullOrEmpty(multipartFile.getResource().getFilename())) {
             throw new ApiBadRequestException("Le fichier ne peut pas être null ou vide");
         }
 
-        DTO fileDto = generateDtoFromMultipartFile(multipartFile);
+        DTO fileDto = generateDtoFromMultipartFile(request, multipartFile);
         final File file = new File(storageDirectory, fileDto.getId() + "-" + multipartFile.getResource().getFilename());
         fileDto.setFilePath(file.getPath());
         fileDto = super.update(fileDto);
@@ -71,18 +70,19 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
             multipartFile.transferTo(file);
             log.info("File {} has been stored in {}", fileDto.getId(), file.getPath());
             return fileDto;
-        } catch (final IOException | IllegalStateException e) {
+        } catch (final Exception e) {
             throw new ApiException(String.format("Le fichier n'a pas pu être enregistré. Erreur: %s.", e.getMessage()), e);
         }
     }
 
+    @Override
     public Resource loadAsResource(final String fileId) {
         final DTO fileDto = super.findById(fileId);
 
         try {
             final Path filePath = Path.of(fileDto.getFilePath());
             return new ByteArrayResource(Files.readAllBytes(filePath));
-        } catch (IllegalPathStateException | IOException e) {
+        } catch (Exception e) {
             throw new ApiException(String.format("Le fichier %s n'a pas pu être chargé. Erreur: %s.", fileId, e.getMessage()), e);
         }
     }
@@ -105,16 +105,17 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         }
     }
 
-    private DTO generateDtoFromMultipartFile(final MultipartFile multipartFile) {
-        final DTO fileDto = getMapper().toDto(multipartFile);
+    private DTO generateDtoFromMultipartFile(final DTO dto, final MultipartFile multipartFile) {
         final String originalFileName = multipartFile.getResource().getFilename();
         if (Strings.isNullOrEmpty(originalFileName)) {
             throw new ApiBadRequestException("Le nom du fichier ne peut pas être null ou vide");
         }
 
-        fileDto.setFilePath("toSet");
-        fileDto.setFileExtension(originalFileName.substring(originalFileName.lastIndexOf(".") + 1));
-        return super.create(fileDto);
+        dto.setFileName(originalFileName);
+        dto.setFileSize(multipartFile.getSize());
+        dto.setFileExtension(originalFileName.substring(originalFileName.lastIndexOf(".") + 1));
+        dto.setFilePath("toSet");
+        return super.create(dto);
     }
 
     private static File getStorageDirectory(final String serviceName) {

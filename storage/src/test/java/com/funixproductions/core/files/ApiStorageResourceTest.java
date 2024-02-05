@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -36,15 +37,20 @@ class ApiStorageResourceTest {
         final String fileName = "fileNameTest" + UUID.randomUUID();
         final String fileExt = "txt";
         final String fileContent = "test";
+        final TestStorageFileDTO request = new TestStorageFileDTO();
         final MockMultipartFile file = new MockMultipartFile("file", fileName + "." + fileExt, "text/plain", fileContent.getBytes());
 
+        request.setData(UUID.randomUUID().toString());
         MvcResult result = this.mockMvc.perform(multipart("/testfile/file")
-                .file(file))
+                        .file(file)
+                        .content(jsonHelper.toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         final TestStorageFileDTO storageFileDTO = jsonHelper.fromJson(result.getResponse().getContentAsString(), TestStorageFileDTO.class);
         assertEquals(fileName + '.' + fileExt, storageFileDTO.getFileName());
+        assertEquals(request.getData(), storageFileDTO.getData());
         assertEquals(fileExt, storageFileDTO.getFileExtension());
 
         result = this.mockMvc.perform(get("/testfile/file/" + storageFileDTO.getId()))
@@ -61,10 +67,14 @@ class ApiStorageResourceTest {
         final String fileName = "fileNameTest" + UUID.randomUUID();
         final String fileExt = "txt";
         final String fileContent = "test";
+        final TestStorageFileDTO request = new TestStorageFileDTO();
         final MockMultipartFile file = new MockMultipartFile("file", fileName + "." + fileExt, "text/plain", fileContent.getBytes());
 
+        request.setData(UUID.randomUUID().toString());
         MvcResult result = this.mockMvc.perform(multipart("/testfile/file")
-                        .file(file))
+                        .file(file)
+                        .content(jsonHelper.toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 

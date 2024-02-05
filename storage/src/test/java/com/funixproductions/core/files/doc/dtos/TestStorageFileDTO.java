@@ -7,4 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TestStorageFileDTO extends ApiStorageFileDTO {
+
+    private String data;
+
 }

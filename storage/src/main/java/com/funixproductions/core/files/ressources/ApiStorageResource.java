@@ -13,8 +13,8 @@ public abstract class ApiStorageResource<DTO extends ApiStorageFileDTO, SERVICE 
     }
 
     @Override
-    public DTO store(MultipartFile file) {
-        return super.getService().store(file);
+    public DTO store(final DTO dto, MultipartFile file) {
+        return super.getService().store(dto, file);
     }
 
     @Override
