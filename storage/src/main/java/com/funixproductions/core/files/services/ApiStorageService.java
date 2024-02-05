@@ -99,8 +99,8 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
                     Files.deleteIfExists(file.toPath());
                     log.info("File {} has been deleted, path: {}", fileEnt.getId(), file.getPath());
                 }
-            } catch (final IOException e) {
-                log.error("File {} has not been deleted", fileEnt.getId(), e);
+            } catch (final Exception e) {
+                throw new ApiException(String.format("Le fichier %s n'a pas pu être supprimé. Erreur: %s.", fileEnt.getId(), e.getMessage()), e);
             }
         }
     }
