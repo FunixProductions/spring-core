@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,10 +42,17 @@ class ApiStorageResourceTest {
         final MockMultipartFile file = new MockMultipartFile("file", fileName + "." + fileExt, "text/plain", fileContent.getBytes());
 
         request.setData(UUID.randomUUID().toString());
+        final MockMultipartFile metadata = new MockMultipartFile(
+                "dto",
+                "dto",
+                MediaType.APPLICATION_JSON_VALUE,
+                jsonHelper.toJson(request).getBytes(StandardCharsets.UTF_8));
+
         MvcResult result = this.mockMvc.perform(multipart("/testfile/file")
                         .file(file)
-                        .content(jsonHelper.toJson(request))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .file(metadata)
+                        .accept(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -71,10 +79,17 @@ class ApiStorageResourceTest {
         final MockMultipartFile file = new MockMultipartFile("file", fileName + "." + fileExt, "text/plain", fileContent.getBytes());
 
         request.setData(UUID.randomUUID().toString());
+        final MockMultipartFile metadata = new MockMultipartFile(
+                "dto",
+                "dto",
+                MediaType.APPLICATION_JSON_VALUE,
+                jsonHelper.toJson(request).getBytes(StandardCharsets.UTF_8));
+
         MvcResult result = this.mockMvc.perform(multipart("/testfile/file")
                         .file(file)
-                        .content(jsonHelper.toJson(request))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .file(metadata)
+                        .accept(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isOk())
                 .andReturn();
 
