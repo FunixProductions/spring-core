@@ -67,7 +67,10 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         fileDto = super.update(fileDto);
 
         try {
-            multipartFile.transferTo(file);
+            if (!file.createNewFile()) {
+                throw new ApiException(String.format("Le fichier %s n'a pas pu être créé", file.getPath()));
+            }
+            Files.write(file.toPath(), multipartFile.getBytes());
             log.info("File {} has been stored in {}", fileDto.getId(), file.getPath());
             return fileDto;
         } catch (final Exception e) {
