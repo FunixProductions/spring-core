@@ -61,24 +61,47 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
             throw new ApiBadRequestException("Le fichier ne peut pas être null ou vide");
         }
 
-        DTO fileDto = generateDtoFromMultipartFile(request, multipartFile);
-        final File file = new File(storageDirectory, fileDto.getId() + "-" + multipartFile.getResource().getFilename());
-        fileDto.setFilePath(file.getPath());
-        fileDto = super.update(fileDto);
-
-        try {
-            if (!file.createNewFile()) {
-                throw new ApiException(String.format("Le fichier %s n'a pas pu être créé", file.getPath()));
-            }
-            Files.write(file.toPath(), multipartFile.getBytes());
-            log.info("File {} has been stored in {}", fileDto.getId(), file.getPath());
-            return fileDto;
-        } catch (final Exception e) {
-            throw new ApiException(String.format("Le fichier n'a pas pu être enregistré. Erreur: %s.", e.getMessage()), e);
+        final String originalFileName = multipartFile.getResource().getFilename();
+        if (Strings.isNullOrEmpty(originalFileName)) {
+            throw new ApiBadRequestException("Le nom du fichier ne peut pas être null ou vide");
         }
+
+        request.setFileName(originalFileName);
+        request.setFileSize(multipartFile.getSize());
+        request.setFileExtension(originalFileName.substring(originalFileName.lastIndexOf(".") + 1));
+        request.setFilePath("toSet");
+        final DTO fileDto = super.create(request);
+
+        return storeNewFile(multipartFile, fileDto);
     }
 
     @Override
+    @Transactional
+    public DTO updatePartial(DTO request, MultipartFile multipartFile) {
+        request.setFileName(null);
+        request.setFilePath(null);
+        request.setFileSize(null);
+        request.setFileExtension(null);
+        final DTO dto = super.update(request);
+
+        return updateFileDTO(multipartFile, dto);
+    }
+
+    @Override
+    @Transactional
+    public DTO updateFull(DTO request, MultipartFile multipartFile) {
+        DTO dto = super.findById(request.getId().toString());
+        request.setFileName(dto.getFileName());
+        request.setFilePath(dto.getFilePath());
+        request.setFileSize(dto.getFileSize());
+        request.setFileExtension(dto.getFileExtension());
+        dto = super.updatePut(request);
+
+        return updateFileDTO(multipartFile, dto);
+    }
+
+    @Override
+    @Transactional
     public Resource loadAsResource(final String fileId) {
         final DTO fileDto = super.findById(fileId);
 
@@ -108,17 +131,43 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         }
     }
 
-    private DTO generateDtoFromMultipartFile(final DTO dto, final MultipartFile multipartFile) {
+    @NonNull
+    private DTO storeNewFile(MultipartFile multipartFile, DTO fileDto) {
         final String originalFileName = multipartFile.getResource().getFilename();
         if (Strings.isNullOrEmpty(originalFileName)) {
             throw new ApiBadRequestException("Le nom du fichier ne peut pas être null ou vide");
         }
 
-        dto.setFileName(originalFileName);
-        dto.setFileSize(multipartFile.getSize());
-        dto.setFileExtension(originalFileName.substring(originalFileName.lastIndexOf(".") + 1));
-        dto.setFilePath("toSet");
-        return super.create(dto);
+        final File file = new File(storageDirectory, fileDto.getId() + "-" + originalFileName);
+
+        fileDto.setFileName(originalFileName);
+        fileDto.setFileSize(multipartFile.getSize());
+        fileDto.setFileExtension(originalFileName.substring(originalFileName.lastIndexOf(".") + 1));
+        fileDto.setFilePath(file.getPath());
+        fileDto = super.update(fileDto);
+
+        try {
+            if (!file.createNewFile()) {
+                throw new ApiException(String.format("Le fichier %s n'a pas pu être créé", file.getPath()));
+            }
+            Files.write(file.toPath(), multipartFile.getBytes());
+            log.info("File {} has been stored in {}", fileDto.getId(), file.getPath());
+            return fileDto;
+        } catch (final Exception e) {
+            throw new ApiException(String.format("Le fichier n'a pas pu être enregistré. Erreur: %s.", e.getMessage()), e);
+        }
+    }
+
+    private DTO updateFileDTO(MultipartFile multipartFile, DTO dto) {
+        final File oldFile = new File(dto.getFilePath());
+
+        try {
+            Files.deleteIfExists(oldFile.toPath());
+            log.info("File {} has been deleted, path: {}", dto.getId(), oldFile.getPath());
+            return storeNewFile(multipartFile, dto);
+        } catch (final Exception e) {
+            throw new ApiException(String.format("Le fichier %s n'a pas pu être mis à jour. Erreur: %s.", dto.getId(), e.getMessage()), e);
+        }
     }
 
     private static File getStorageDirectory(final String serviceName) {

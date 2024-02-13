@@ -18,10 +18,17 @@ public abstract class ApiStorageResource<DTO extends ApiStorageFileDTO, SERVICE 
     }
 
     @Override
+    public DTO updatePartial(DTO dto, MultipartFile file) {
+        return super.getService().updatePartial(dto, file);
+    }
+
+    @Override
+    public DTO updateFull(DTO dto, MultipartFile file) {
+        return super.getService().updateFull(dto, file);
+    }
+
+    @Override
     public Resource loadAsResource(String id) {
         return super.getService().loadAsResource(id);
     }
-
-    public void beforeStoringFile(MultipartFile multipartFile) {}
-    public void beforeLoadingResource(String id) {}
 }

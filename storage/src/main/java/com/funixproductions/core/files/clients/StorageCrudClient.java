@@ -19,6 +19,12 @@ public interface StorageCrudClient<DTO extends ApiStorageFileDTO> extends CrudCl
     @PostMapping("/file")
     DTO store(@RequestPart("dto") @Valid DTO dto, @RequestPart("file") MultipartFile file);
 
+    @PostMapping("/file-patch")
+    DTO updatePartial(@RequestPart("dto") DTO dto, @RequestPart("file") MultipartFile file);
+
+    @PostMapping("/file-put")
+    DTO updateFull(@RequestPart("dto") @Valid DTO dto, @RequestPart("file") MultipartFile file);
+
     @GetMapping("/file/{id}")
     Resource loadAsResource(@PathVariable("id") String id);
 
