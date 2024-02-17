@@ -31,7 +31,7 @@ public abstract class ApiResource<DTO extends ApiDTO, SERVICE extends CrudClient
     }
 
     @Override
-    public List<DTO> create(List<@Valid DTO> request) {
+    public List<DTO> create(@Valid List<@Valid DTO> request) {
         return service.create(request);
     }
 
@@ -51,7 +51,7 @@ public abstract class ApiResource<DTO extends ApiDTO, SERVICE extends CrudClient
     }
 
     @Override
-    public List<DTO> updatePut(List<@Valid DTO> request) {
+    public List<DTO> updatePut(@Valid List<@Valid DTO> request) {
         return service.updatePut(request);
     }
 

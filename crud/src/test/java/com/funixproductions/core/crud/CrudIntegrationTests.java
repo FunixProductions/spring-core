@@ -104,6 +104,24 @@ class CrudIntegrationTests {
     }
 
     @Test
+    void testCreateBatch() throws Exception {
+        final List<TestDTO> list = new ArrayList<>();
+
+        TestDTO testDTO = new TestDTO();
+        testDTO.setData("oui");
+        list.add(testDTO);
+
+        testDTO = new TestDTO();
+        testDTO.setData("oui2");
+        list.add(testDTO);
+
+        mockMvc.perform(post(ROUTE + "/batch")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gson.toJson(list)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void testUpdateBlankFields() throws Exception {
         final TestDTO testDTO = new TestDTO();
         testDTO.setData("oui");
