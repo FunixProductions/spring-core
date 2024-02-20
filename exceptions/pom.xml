@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.funixproductions.core</groupId>
         <artifactId>funixproductions-core</artifactId>
-        <version>1.1.0.5.8</version>
+        <version>1.1.0.5.9</version>
     </parent>
 
     <groupId>com.funixproductions.core.exceptions</groupId>
@@ -24,6 +24,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.sentry/sentry-spring-boot-starter-jakarta -->
+        <dependency>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
+            <version>${io.sentry.version}</version>
+        </dependency>
+
     </dependencies>
 
 </project>

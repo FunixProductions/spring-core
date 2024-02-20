@@ -1,6 +1,7 @@
 package com.funixproductions.core.exceptions.handler;
 
 import com.funixproductions.core.exceptions.*;
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -19,6 +20,7 @@ public class ApiExceptionsHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiExceptionResponse handleBase(ApiException e) {
         log.error("Api Exception ", e);
+        Sentry.captureException(e);
         return handleException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
