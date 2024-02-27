@@ -52,7 +52,7 @@
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
         <io.jsonwebtoken.version>0.12.3</io.jsonwebtoken.version>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-configuration-processor -->
-        <org.springframework.boot.annotation.version>3.2.2</org.springframework.boot.annotation.version>
+        <org.springframework.boot.annotation.version>3.2.3</org.springframework.boot.annotation.version>
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <org.postgresql.version>42.7.1</org.postgresql.version>
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
