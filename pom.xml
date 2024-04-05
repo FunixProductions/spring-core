@@ -42,7 +42,7 @@
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
         <maven.javadoc.version>3.6.3</maven.javadoc.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
-        <maven.sources.version>3.3.0</maven.sources.version>
+        <maven.sources.version>3.3.1</maven.sources.version>
         <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
         <org.jacoco.coverage.version>0.8.12</org.jacoco.coverage.version>
         <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
