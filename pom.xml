@@ -60,7 +60,7 @@
         <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
         <org.apache.pdfbox.version>3.0.2</org.apache.pdfbox.version>
         <!-- https://mvnrepository.com/artifact/io.sentry/sentry-spring-boot-starter-jakarta -->
-        <io.sentry.version>7.6.0</io.sentry.version>
+        <io.sentry.version>7.7.0</io.sentry.version>
     </properties>
 
     <licenses>
