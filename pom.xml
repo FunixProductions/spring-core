@@ -34,7 +34,7 @@
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <com.google.guava.version>33.2.0-jre</com.google.guava.version>
         <!-- https://mvnrepository.com/artifact/org.sonarsource.scanner.maven/sonar-maven-plugin -->
-        <org.sonarsource.scanner.maven.version>3.11.0.3922</org.sonarsource.scanner.maven.version>
+        <org.sonarsource.scanner.maven.version>4.0.0.4121</org.sonarsource.scanner.maven.version>
         <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
         <nexus.staging.plugin.version>1.7.0</nexus.staging.plugin.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
