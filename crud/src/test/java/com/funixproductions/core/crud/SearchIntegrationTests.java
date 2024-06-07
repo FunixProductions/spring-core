@@ -290,6 +290,28 @@ class SearchIntegrationTests {
         checkSearchFail("number:" + SearchOperation.LIKE_IGNORE_CASE + ":10");
     }
 
+    @Test
+    void testSearchDateWithIsNullOrIsNotNull() throws Exception {
+        final Instant now = Instant.now();
+        final List<TestEntity> testEntities = new ArrayList<>();
+
+        testEntities.add(new TestEntity("ouiData2", 10, Date.from(now.plusSeconds(100)), 1.f, 10.0, true, TestEnum.ONE));
+        testEntities.add(new TestEntity("NonData2", 11, Date.from(now.plusSeconds(60)), 2.f, 5.0, true, TestEnum.TWO));
+        testEntities.add(new TestEntity("dd", 11, Date.from(now.plusSeconds(60)), 2.f, 5.0, true, TestEnum.THREE));
+        testEntities.add(new TestEntity("dd", 11, Date.from(now.minusSeconds(60)), 2.f, 5.0, true, TestEnum.THREE));
+        testEntities.add(new TestEntity("dd", 11, null, 2.f, 5.0, true, TestEnum.THREE));
+        testEntities.add(new TestEntity("dd", 11, null, 2.f, 5.0, true, TestEnum.THREE));
+
+        this.repository.saveAllAndFlush(testEntities);
+
+        PageDTO<TestDTO> response = this.testService.getAll("", "", String.format("date:%s:null", SearchOperation.IS_NULL.getOperation()), "");
+        assertEquals(2, response.getTotalElementsThisPage());
+
+        response = this.testService.getAll("", "", String.format("date:%s:null", SearchOperation.IS_NOT_NULL.getOperation()), "");
+        assertEquals(4, response.getTotalElementsThisPage());
+
+    }
+
     private void checkSearchSuccess(final TestDTO toCheck, final String search) throws Exception {
         mockMvc.perform(get(ROUTE + "?search=" + search)).andExpect(status().isOk());
         final PageDTO<TestDTO> list = testService.getAll(null, null, search, null);
