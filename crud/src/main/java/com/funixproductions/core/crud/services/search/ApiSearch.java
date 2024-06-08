@@ -32,162 +32,138 @@ public class ApiSearch<ENTITY extends ApiEntity> implements Specification<ENTITY
 
         try {
             final String[] searchKeyParts = search.getKey().split("\\.");
-            final Object valueSearch = castToRequiredType(root, getFieldType(root, searchKeyParts), search.getValue());
-
             if (searchKeyParts.length == 0) {
                 throw new ApiBadRequestException("Veuillez spécifier un champ de recherche.");
-            } else if (searchKeyParts.length == 1) {
-                switch (search.getOperation()) {
-                    case EQUALS -> {
-                        return criteriaBuilder.equal(root.get(searchKeyParts[0]), valueSearch);
-                    }
-                    case EQUALS_IGNORE_CASE -> {
-                        if (valueSearch instanceof final String value) {
-                            return criteriaBuilder.equal(
-                                    criteriaBuilder.lower(root.get(searchKeyParts[0])),
-                                    value.toLowerCase()
-                            );
-                        } else {
-                            throw new ApiBadRequestException("Impossible de faire un equals ignore case sur un type autre que String.");
-                        }
-                    }
-                    case NOT_EQUALS -> {
-                        return criteriaBuilder.notEqual(root.get(searchKeyParts[0]), valueSearch);
-                    }
-                    case GREATER_THAN -> {
-                        if (valueSearch instanceof final Date date) {
-                            return criteriaBuilder.greaterThan(root.get(searchKeyParts[0]), date);
-                        }
-                        return criteriaBuilder.greaterThan(root.get(searchKeyParts[0]), valueSearch.toString());
-                    }
-                    case GREATER_THAN_OR_EQUAL_TO -> {
-                        if (valueSearch instanceof final Date date) {
-                            return criteriaBuilder.greaterThanOrEqualTo(root.get(searchKeyParts[0]), date);
-                        }
-                        return criteriaBuilder.greaterThanOrEqualTo(root.get(searchKeyParts[0]), valueSearch.toString());
-                    }
-                    case LESS_THAN -> {
-                        if (valueSearch instanceof final Date date) {
-                            return criteriaBuilder.lessThan(root.get(searchKeyParts[0]), date);
-                        }
-                        return criteriaBuilder.lessThan(root.get(searchKeyParts[0]), valueSearch.toString());
-                    }
-                    case LESS_THAN_OR_EQUAL_TO -> {
-                        if (valueSearch instanceof final Date date) {
-                            return criteriaBuilder.lessThanOrEqualTo(root.get(searchKeyParts[0]), date);
-                        }
-                        return criteriaBuilder.lessThanOrEqualTo(root.get(searchKeyParts[0]), valueSearch.toString());
-                    }
-                    case LIKE -> {
-                        return criteriaBuilder.like(root.get(searchKeyParts[0]), "%" + valueSearch + "%");
-                    }
-                    case LIKE_IGNORE_CASE -> {
-                        if (valueSearch instanceof final String value) {
-                            return criteriaBuilder.like(
-                                    criteriaBuilder.lower(root.get(searchKeyParts[0])),
-                                    "%" + value.toLowerCase() + "%"
-                            );
-                        } else {
-                            throw new ApiBadRequestException("Impossible de faire un like ignore case sur un type autre que String.");
-                        }
-                    }
-                    case NOT_LIKE -> {
-                        return criteriaBuilder.notLike(root.get(searchKeyParts[0]), "%" + valueSearch + "%");
-                    }
-                    case IS_NULL -> {
-                        return criteriaBuilder.isNull(root.get(searchKeyParts[0]));
-                    }
-                    case IS_NOT_NULL -> {
-                        return criteriaBuilder.isNotNull(root.get(searchKeyParts[0]));
-                    }
-                    case IS_TRUE -> {
-                        return criteriaBuilder.isTrue(root.get(searchKeyParts[0]));
-                    }
-                    case IS_FALSE -> {
-                        return criteriaBuilder.isFalse(root.get(searchKeyParts[0]));
-                    }
-                    default -> throw new ApiBadRequestException("Operation " + search.getOperation() + " is not supported.");
+            }
+
+            Predicate predicate;
+
+            if (searchKeyParts.length == 1) {
+                predicate = switch (search.getOperation()) {
+                    case IS_NULL -> criteriaBuilder.isNull(root.get(searchKeyParts[0]));
+                    case IS_NOT_NULL -> criteriaBuilder.isNotNull(root.get(searchKeyParts[0]));
+                    case IS_TRUE -> criteriaBuilder.isTrue(root.get(searchKeyParts[0]));
+                    case IS_FALSE -> criteriaBuilder.isFalse(root.get(searchKeyParts[0]));
+                    default -> null;
+                };
+                if (predicate != null) {
+                    return predicate;
                 }
+
+                final Object valueSearch = castToRequiredType(root, getFieldType(root, searchKeyParts), search.getValue());
+                return getPredicate(root, criteriaBuilder, searchKeyParts[0], valueSearch);
             } else {
+                final String searchKeyPart = searchKeyParts[searchKeyParts.length - 1];
+
                 Join<ENTITY, ?> subObjectJoin = root.join(searchKeyParts[0], JoinType.LEFT);
                 for (int i = 1; i < searchKeyParts.length - 1; i++) {
                     subObjectJoin = subObjectJoin.join(searchKeyParts[i], JoinType.LEFT);
                 }
 
-                switch (search.getOperation()) {
-                    case EQUALS -> {
-                        return criteriaBuilder.equal(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch);
-                    }
-                    case EQUALS_IGNORE_CASE -> {
-                        if (valueSearch instanceof final String value) {
-                            return criteriaBuilder.equal(
-                                    criteriaBuilder.lower(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1])),
-                                    value.toLowerCase()
-                            );
-                        } else {
-                            throw new ApiBadRequestException("Impossible de faire un equals ignore case sur un type autre que String.");
-                        }
-                    }
-                    case NOT_EQUALS -> {
-                        return criteriaBuilder.notEqual(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch);
-                    }
-                    case GREATER_THAN -> {
-                        if (valueSearch instanceof final Date date) {
-                            return criteriaBuilder.greaterThan(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), date);
-                        }
-                        return criteriaBuilder.greaterThan(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch.toString());
-                    }
-                    case GREATER_THAN_OR_EQUAL_TO -> {
-                        if (valueSearch instanceof final Date date) {
-                            return criteriaBuilder.greaterThanOrEqualTo(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), date);
-                        }
-                        return criteriaBuilder.greaterThanOrEqualTo(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch.toString());
-                    }
-                    case LESS_THAN -> {
-                        if (valueSearch instanceof final Date date) {
-                            return criteriaBuilder.lessThan(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), date);
-                        }
-                        return criteriaBuilder.lessThan(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch.toString());
-                    }
-                    case LESS_THAN_OR_EQUAL_TO -> {
-                        if (valueSearch instanceof final Date date) {
-                            return criteriaBuilder.lessThanOrEqualTo(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), date);
-                        }
-                        return criteriaBuilder.lessThanOrEqualTo(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), valueSearch.toString());
-                    }
-                    case LIKE -> {
-                        return criteriaBuilder.like(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), "%" + valueSearch + "%");
-                    }
-                    case LIKE_IGNORE_CASE -> {
-                        if (valueSearch instanceof final String value) {
-                            return criteriaBuilder.like(
-                                    criteriaBuilder.lower(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1])),
-                                    "%" + value.toLowerCase() + "%"
-                            );
-                        } else {
-                            throw new ApiBadRequestException("Impossible de faire un like ignore case sur un type autre que String.");
-                        }
-                    }
-                    case NOT_LIKE -> {
-                        return criteriaBuilder.notLike(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]), "%" + valueSearch + "%");
-                    }
-                    case IS_NULL -> {
-                        return criteriaBuilder.isNull(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]));
-                    }
-                    case IS_NOT_NULL -> {
-                        return criteriaBuilder.isNotNull(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]));
-                    }
-                    case IS_TRUE -> {
-                        return criteriaBuilder.isTrue(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]));
-                    }
-                    case IS_FALSE -> {
-                        return criteriaBuilder.isFalse(subObjectJoin.get(searchKeyParts[searchKeyParts.length - 1]));
-                    }
-                    default -> throw new ApiBadRequestException("Operation " + search.getOperation() + " is not supported.");
+                predicate = switch (search.getOperation()) {
+                    case IS_NULL -> criteriaBuilder.isNull(subObjectJoin.get(searchKeyPart));
+                    case IS_NOT_NULL -> criteriaBuilder.isNotNull(subObjectJoin.get(searchKeyPart));
+                    case IS_TRUE -> criteriaBuilder.isTrue(subObjectJoin.get(searchKeyPart));
+                    case IS_FALSE -> criteriaBuilder.isFalse(subObjectJoin.get(searchKeyPart));
+                    default -> null;
+                };
+                if (predicate != null) {
+                    return predicate;
                 }
+
+                final Object valueSearch = castToRequiredType(root, getFieldType(root, searchKeyParts), search.getValue());
+                return getPredicate(subObjectJoin, criteriaBuilder, searchKeyParts[searchKeyParts.length - 1], valueSearch);
             }
         } catch (IllegalArgumentException e) {
             throw new ApiBadRequestException("Le champ de recherche " + search.getKey() + " n'existe pas.", e);
+        }
+    }
+
+    private Predicate getPredicate(@NonNull From<ENTITY, ?> root, @NonNull CriteriaBuilder criteriaBuilder, String searchKeyPart, Object valueSearch) {
+        switch (search.getOperation()) {
+            case EQUALS -> {
+                return criteriaBuilder.equal(root.get(searchKeyPart), valueSearch);
+            }
+            case EQUALS_IGNORE_CASE -> {
+                if (valueSearch instanceof final String value) {
+                    return criteriaBuilder.equal(
+                            criteriaBuilder.lower(root.get(searchKeyPart)),
+                            value.toLowerCase()
+                    );
+                } else {
+                    throw new ApiBadRequestException("Impossible de faire un equals ignore case sur un type autre que String.");
+                }
+            }
+            case STARTS_WITH -> {
+                return criteriaBuilder.like(root.get(searchKeyPart), valueSearch + "%");
+            }
+            case STARTS_WITH_IGNORE_CASE -> {
+                if (valueSearch instanceof final String value) {
+                    return criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get(searchKeyPart)),
+                            value.toLowerCase() + "%"
+                    );
+                } else {
+                    throw new ApiBadRequestException("Impossible de faire un starts with ignore case sur un type autre que String.");
+                }
+            }
+            case ENDS_WITH -> {
+                return criteriaBuilder.like(root.get(searchKeyPart), "%" + valueSearch);
+            }
+            case ENDS_WITH_IGNORE_CASE -> {
+                if (valueSearch instanceof final String value) {
+                    return criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get(searchKeyPart)),
+                            "%" + value.toLowerCase()
+                    );
+                } else {
+                    throw new ApiBadRequestException("Impossible de faire un ends with ignore case sur un type autre que String.");
+                }
+            }
+            case NOT_EQUALS -> {
+                return criteriaBuilder.notEqual(root.get(searchKeyPart), valueSearch);
+            }
+            case GREATER_THAN -> {
+                if (valueSearch instanceof final Date date) {
+                    return criteriaBuilder.greaterThan(root.get(searchKeyPart), date);
+                }
+                return criteriaBuilder.greaterThan(root.get(searchKeyPart), valueSearch.toString());
+            }
+            case GREATER_THAN_OR_EQUAL_TO -> {
+                if (valueSearch instanceof final Date date) {
+                    return criteriaBuilder.greaterThanOrEqualTo(root.get(searchKeyPart), date);
+                }
+                return criteriaBuilder.greaterThanOrEqualTo(root.get(searchKeyPart), valueSearch.toString());
+            }
+            case LESS_THAN -> {
+                if (valueSearch instanceof final Date date) {
+                    return criteriaBuilder.lessThan(root.get(searchKeyPart), date);
+                }
+                return criteriaBuilder.lessThan(root.get(searchKeyPart), valueSearch.toString());
+            }
+            case LESS_THAN_OR_EQUAL_TO -> {
+                if (valueSearch instanceof final Date date) {
+                    return criteriaBuilder.lessThanOrEqualTo(root.get(searchKeyPart), date);
+                }
+                return criteriaBuilder.lessThanOrEqualTo(root.get(searchKeyPart), valueSearch.toString());
+            }
+            case LIKE -> {
+                return criteriaBuilder.like(root.get(searchKeyPart), "%" + valueSearch + "%");
+            }
+            case LIKE_IGNORE_CASE -> {
+                if (valueSearch instanceof final String value) {
+                    return criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get(searchKeyPart)),
+                            "%" + value.toLowerCase() + "%"
+                    );
+                } else {
+                    throw new ApiBadRequestException("Impossible de faire un like ignore case sur un type autre que String.");
+                }
+            }
+            case NOT_LIKE -> {
+                return criteriaBuilder.notLike(root.get(searchKeyPart), "%" + valueSearch + "%");
+            }
+            default -> throw new ApiBadRequestException("Operation " + search.getOperation() + " is not supported.");
         }
     }
 
