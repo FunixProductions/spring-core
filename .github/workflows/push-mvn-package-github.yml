@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Push Maven realease
+name: Push Maven package to github repository
 
 on:
   release:
@@ -17,26 +17,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - id: import_gpg
-        name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
-          passphrase: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
 
       - name: Publish to the Maven Central Repository
         run: mvn --batch-mode clean deploy -T 6
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ENCRYPTION_KEY: hwJdNY1/yC3miXQR+Vw2V3qtt1e3FPJ2y62BKtROUJs=
           ENCRYPTION_IV: DKKyySzj8ao5WgraQpwj+A==
