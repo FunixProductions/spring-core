@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Push Maven package to github repository
+name: Push Maven package to FunixProductions repository
 
 on:
   release:
@@ -9,13 +9,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish-github-mvn-package:
-    name: Publish to Github Maven Package
+  publish-funixproductions-mvn-package:
+    name: Publish to FunixProductions Maven Package
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
-      packages: write
 
     steps:
       - name: Checkout code
@@ -34,9 +33,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Set up Maven settings
+        run: |
+          mkdir -p $HOME/.m2
+          cp .github/settings.xml $HOME/.m2/settings.xml
+
       - name: Publish to the Maven Central Repository
         run: mvn --batch-mode clean deploy -T 6
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAVEN_USERNAME: ${{ secrets.FUNIXPROD_MVN_REPO_USER }}
+          MAVEN_PASSWORD: ${{ secrets.FUNIXPROD_MVN_REPO_TOKEN }}
           ENCRYPTION_KEY: hwJdNY1/yC3miXQR+Vw2V3qtt1e3FPJ2y62BKtROUJs=
           ENCRYPTION_IV: DKKyySzj8ao5WgraQpwj+A==
