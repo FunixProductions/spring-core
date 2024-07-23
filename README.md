@@ -6,7 +6,7 @@ Spring core package for spring projects
 
 ### Importing project
 
-Lien du repository Maven : [FunixProductions - Core spring package](https://repo.maven.apache.org/maven2/com/funixproductions/core/funixproductions-core/)
+Lien du repository Maven : [FunixProductions - Core spring package](https://mvn.funixproductions.com/#/releases/com/funixproductions/core)
 
 ```xml
 <parent>
