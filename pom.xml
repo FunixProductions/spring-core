@@ -36,7 +36,7 @@
         <!-- https://mvnrepository.com/artifact/org.sonarsource.scanner.maven/sonar-maven-plugin -->
         <org.sonarsource.scanner.maven.version>4.0.0.4121</org.sonarsource.scanner.maven.version>
         <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
-        <maven.sign.version>3.2.4</maven.sign.version>
+        <maven.sign.version>3.2.5</maven.sign.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
         <maven.javadoc.version>3.8.0</maven.javadoc.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
