@@ -44,7 +44,7 @@
         <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
         <org.jacoco.coverage.version>0.8.12</org.jacoco.coverage.version>
         <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
-        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
+        <org.mapstruct.version>1.6.0</org.mapstruct.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
         <maven.compiler.version>3.13.0</maven.compiler.version>
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
