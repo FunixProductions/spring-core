@@ -9,16 +9,22 @@ import com.funixproductions.core.files.clients.StorageCrudClient;
 import com.funixproductions.core.files.dtos.ApiStorageFileDTO;
 import com.funixproductions.core.files.entities.ApiStorageFile;
 import com.google.common.base.Strings;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class used to handle files in spring applications.
@@ -33,6 +39,7 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
     private static final String STORAGE_DIRECTORY = "storage-files";
 
     private final File storageDirectory;
+    private final Cache<String, Resource> resourceCache = CacheBuilder.newBuilder().expireAfterAccess(30, TimeUnit.MINUTES).build();
 
     /**
      * Constructor for storage service
@@ -105,9 +112,16 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
     public Resource loadAsResource(final String fileId) {
         final DTO fileDto = super.findById(fileId);
 
+        Resource resource = resourceCache.getIfPresent(fileId);
+        if (resource != null) {
+            return resource;
+        }
+
         try {
             final Path filePath = Path.of(fileDto.getFilePath());
-            return new ByteArrayResource(Files.readAllBytes(filePath));
+            resource = new ByteArrayResource(Files.readAllBytes(filePath));
+            resourceCache.put(fileId, resource);
+            return resource;
         } catch (Exception e) {
             throw new ApiException(String.format("Le fichier %s n'a pas pu être chargé. Erreur: %s.", fileId, e.getMessage()), e);
         }
@@ -124,10 +138,24 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
                 if (file.exists()) {
                     Files.deleteIfExists(file.toPath());
                     log.info("File {} has been deleted, path: {}", fileEnt.getId(), file.getPath());
+                    this.resourceCache.invalidate(fileEnt.getId().toString());
                 }
             } catch (final Exception e) {
                 throw new ApiException(String.format("Le fichier %s n'a pas pu être supprimé. Erreur: %s.", fileEnt.getId(), e.getMessage()), e);
             }
+        }
+    }
+
+    @Scheduled(fixedRate = 3, timeUnit = TimeUnit.MINUTES)
+    public void checkCache() {
+        final List<String> uuids = new ArrayList<>(resourceCache.asMap().keySet());
+
+        for (final ENTITY entity : super.getRepository().findAllByUuidIn(uuids)) {
+            uuids.remove(entity.getUuid().toString());
+        }
+
+        for (final String uuid : uuids) {
+            resourceCache.invalidate(uuid);
         }
     }
 
@@ -164,6 +192,7 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         try {
             Files.deleteIfExists(oldFile.toPath());
             log.info("File {} has been deleted, path: {}", dto.getId(), oldFile.getPath());
+            this.resourceCache.invalidate(dto.getId().toString());
             return storeNewFile(multipartFile, dto);
         } catch (final Exception e) {
             throw new ApiException(String.format("Le fichier %s n'a pas pu être mis à jour. Erreur: %s.", dto.getId(), e.getMessage()), e);
