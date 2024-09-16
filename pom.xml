@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.0</version>
+        <version>3.3.3</version>
         <relativePath/>
     </parent>
 
@@ -35,7 +35,6 @@
         <com.google.guava.version>33.3.0-jre</com.google.guava.version>
         <!-- https://mvnrepository.com/artifact/org.sonarsource.scanner.maven/sonar-maven-plugin -->
         <org.sonarsource.scanner.maven.version>4.0.0.4121</org.sonarsource.scanner.maven.version>
-        <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
         <maven.sign.version>3.2.5</maven.sign.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
         <maven.javadoc.version>3.10.0</maven.javadoc.version>
@@ -44,23 +43,23 @@
         <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
         <org.jacoco.coverage.version>0.8.12</org.jacoco.coverage.version>
         <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
-        <org.mapstruct.version>1.6.0</org.mapstruct.version>
+        <org.mapstruct.version>1.6.1</org.mapstruct.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
         <maven.compiler.version>3.13.0</maven.compiler.version>
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
-        <io.jsonwebtoken.version>0.12.5</io.jsonwebtoken.version>
+        <io.jsonwebtoken.version>0.12.6</io.jsonwebtoken.version>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-configuration-processor -->
-        <org.springframework.boot.annotation.version>3.3.0</org.springframework.boot.annotation.version>
+        <org.springframework.boot.annotation.version>3.3.3</org.springframework.boot.annotation.version>
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <org.postgresql.version>42.7.3</org.postgresql.version>
+        <org.postgresql.version>42.7.4</org.postgresql.version>
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
-        <org.flywaydb.version>10.14.0</org.flywaydb.version>
+        <org.flywaydb.version>10.18.0</org.flywaydb.version>
         <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
         <org.apache.pdfbox.version>3.0.3</org.apache.pdfbox.version>
         <!-- https://mvnrepository.com/artifact/io.sentry/sentry-spring-boot-starter-jakarta -->
         <io.sentry.version>7.14.0</io.sentry.version>
         <!-- https://mvnrepository.com/artifact/net.dv8tion/JDA -->
-        <net.jda.version>5.0.0-beta.24</net.jda.version>
+        <net.jda.version>5.1.0</net.jda.version>
     </properties>
 
     <licenses>
