@@ -1,7 +1,9 @@
 package com.funixproductions.core.files;
 
 import com.funixproductions.core.TestApp;
+import com.funixproductions.core.exceptions.ApiBadRequestException;
 import com.funixproductions.core.files.doc.dtos.TestStorageFileDTO;
+import com.funixproductions.core.files.services.ApiStorageService;
 import com.funixproductions.core.test.beans.JsonHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +14,15 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -209,6 +215,41 @@ class ApiStorageResourceTest {
 
         this.mockMvc.perform(get("/testfile/file/" + storageFileDTO.getId()))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testMakeThumbnailOfImage() throws Exception {
+        InputStream imageStream = getClass().getResourceAsStream("/test-image.jpeg");
+
+        MockMultipartFile testImage = new MockMultipartFile(
+                "image",
+                "test-image.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                imageStream
+        );
+
+        ApiStorageService.createThumbnailFromImage(testImage, 200);
+        ApiStorageService.createThumbnailFromImage(testImage, 100);
+
+        assertThrowsExactly(ApiBadRequestException.class, () -> {
+            ApiStorageService.createThumbnailFromImage(testImage, 0);
+            ApiStorageService.createThumbnailFromImage(testImage, -1);
+        });
+
+        final byte[] bytes = ApiStorageService.createThumbnailFromImage(testImage, 30);
+
+        File outputFile = new File("./target/test.jpeg");
+        try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+            fos.write(bytes);
+        }
+
+        // Verify if the saved file is a readable image
+        BufferedImage img = ImageIO.read(outputFile);
+        if (img != null) {
+            System.out.println("Image written successfully! Width: " + img.getWidth() + ", Height: " + img.getHeight());
+        } else {
+            fail("Failed to read the image. The file might not be a valid image format.");
+        }
     }
 
 }

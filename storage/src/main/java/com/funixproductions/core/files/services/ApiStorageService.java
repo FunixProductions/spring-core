@@ -14,11 +14,15 @@ import com.google.common.cache.CacheBuilder;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.imgscalr.Scalr;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -146,7 +150,7 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         }
     }
 
-    @Scheduled(fixedRate = 3, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
     public void checkCache() {
         final List<String> uuids = new ArrayList<>(resourceCache.asMap().keySet());
 
@@ -156,6 +160,22 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
 
         for (final String uuid : uuids) {
             resourceCache.invalidate(uuid);
+        }
+    }
+
+    public static byte[] createThumbnailFromImage(@NonNull MultipartFile originalFile, int width) {
+        if (width <= 0) {
+            throw new ApiBadRequestException("La redimention d'une image ne peut pas se faire avec une largeur de 0 ou moins.");
+        }
+
+        try (final ByteArrayOutputStream thumbOutput = new ByteArrayOutputStream()) {
+            BufferedImage img = ImageIO.read(originalFile.getInputStream());
+            BufferedImage thumbImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, Scalr.OP_ANTIALIAS);
+
+            ImageIO.write(thumbImg, originalFile.getContentType().split("/")[1], thumbOutput);
+            return thumbOutput.toByteArray();
+        } catch (Exception e) {
+            throw new ApiException("Erreur interne lors de la création d'une image en basse résolution.", e);
         }
     }
 
