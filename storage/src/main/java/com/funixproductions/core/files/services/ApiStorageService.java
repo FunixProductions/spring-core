@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -77,10 +78,10 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
             throw new ApiBadRequestException("Le nom du fichier ne peut pas être null ou vide");
         }
 
-        request.setFileName(originalFileName);
+        request.setFileName(UUID.randomUUID() + "_" + originalFileName);
         request.setFileSize(multipartFile.getSize());
         request.setFileExtension(originalFileName.substring(originalFileName.lastIndexOf(".") + 1));
-        request.setFilePath("toSet");
+        request.setFilePath("toSet" + UUID.randomUUID());
         final DTO fileDto = super.create(request);
 
         return storeNewFile(multipartFile, fileDto);
@@ -181,12 +182,12 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
 
     @NonNull
     private DTO storeNewFile(MultipartFile multipartFile, DTO fileDto) {
-        final String originalFileName = multipartFile.getResource().getFilename();
+        final String originalFileName = fileDto.getFileName();
         if (Strings.isNullOrEmpty(originalFileName)) {
             throw new ApiBadRequestException("Le nom du fichier ne peut pas être null ou vide");
         }
 
-        final File file = new File(storageDirectory, fileDto.getId() + "-" + originalFileName);
+        final File file = new File(storageDirectory, originalFileName);
 
         fileDto.setFileName(originalFileName);
         fileDto.setFileSize(multipartFile.getSize());
@@ -212,6 +213,8 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         try {
             Files.deleteIfExists(oldFile.toPath());
             log.info("File {} has been deleted, path: {}", dto.getId(), oldFile.getPath());
+
+            dto.setFileName(UUID.randomUUID() + "_" + multipartFile.getResource().getFilename());
             this.resourceCache.invalidate(dto.getId().toString());
             return storeNewFile(multipartFile, dto);
         } catch (final Exception e) {

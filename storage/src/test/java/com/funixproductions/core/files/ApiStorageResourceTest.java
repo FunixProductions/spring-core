@@ -64,7 +64,7 @@ class ApiStorageResourceTest {
                 .andReturn();
 
         final TestStorageFileDTO storageFileDTO = jsonHelper.fromJson(result.getResponse().getContentAsString(), TestStorageFileDTO.class);
-        assertEquals(fileName + '.' + fileExt, storageFileDTO.getFileName());
+        assertTrue(storageFileDTO.getFileName().contains(fileName));
         assertEquals(request.getData(), storageFileDTO.getData());
         assertEquals(fileExt, storageFileDTO.getFileExtension());
 
@@ -122,7 +122,7 @@ class ApiStorageResourceTest {
         final TestStorageFileDTO finalStorageFileDTO = jsonHelper.fromJson(result.getResponse().getContentAsString(), TestStorageFileDTO.class);
         assertEquals(storageFileDTO.getId(), finalStorageFileDTO.getId());
         assertNotEquals(storageFileDTO.getFileName(), finalStorageFileDTO.getFileName());
-        assertEquals(finalFileName + '.' + finalFileExt, finalStorageFileDTO.getFileName());
+        assertTrue(finalStorageFileDTO.getFileName().contains(finalFileName));
 
         result = this.mockMvc.perform(get("/testfile/file/" + storageFileDTO.getId()))
                 .andExpect(status().isOk())
@@ -175,7 +175,7 @@ class ApiStorageResourceTest {
         final TestStorageFileDTO finalStorageFileDTO = jsonHelper.fromJson(result.getResponse().getContentAsString(), TestStorageFileDTO.class);
         assertEquals(storageFileDTO.getId(), finalStorageFileDTO.getId());
         assertNotEquals(storageFileDTO.getFileName(), finalStorageFileDTO.getFileName());
-        assertEquals(finalFileName + '.' + finalFileExt, finalStorageFileDTO.getFileName());
+        assertTrue(finalStorageFileDTO.getFileName().contains(finalFileName));
 
         result = this.mockMvc.perform(get("/testfile/file/" + storageFileDTO.getId()))
                 .andExpect(status().isOk())
@@ -185,7 +185,7 @@ class ApiStorageResourceTest {
 
     @Test
     void testDeleteFile() throws Exception {
-        final String fileName = "fileNameTest" + UUID.randomUUID();
+        final String fileName = UUID.randomUUID() + "_fileNameTest";
         final String fileExt = "txt";
         final String fileContent = "test";
         final TestStorageFileDTO request = new TestStorageFileDTO();
@@ -207,7 +207,7 @@ class ApiStorageResourceTest {
                 .andReturn();
 
         final TestStorageFileDTO storageFileDTO = jsonHelper.fromJson(result.getResponse().getContentAsString(), TestStorageFileDTO.class);
-        assertEquals(fileName + '.' + fileExt, storageFileDTO.getFileName());
+        assertTrue(storageFileDTO.getFileName().contains(fileName));
         assertEquals(fileExt, storageFileDTO.getFileExtension());
 
         this.mockMvc.perform(delete("/testfile?id=" + storageFileDTO.getId()))
