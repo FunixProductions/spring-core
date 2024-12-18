@@ -53,7 +53,7 @@
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <org.postgresql.version>42.7.4</org.postgresql.version>
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
-        <org.flywaydb.version>10.20.1</org.flywaydb.version>
+        <org.flywaydb.version>11.1.0</org.flywaydb.version>
         <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
         <org.apache.pdfbox.version>3.0.3</org.apache.pdfbox.version>
         <!-- https://mvnrepository.com/artifact/io.sentry/sentry-spring-boot-starter-jakarta -->
