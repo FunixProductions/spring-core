@@ -55,7 +55,7 @@
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
         <org.flywaydb.version>11.1.0</org.flywaydb.version>
         <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
-        <org.apache.pdfbox.version>3.0.3</org.apache.pdfbox.version>
+        <org.apache.pdfbox.version>3.0.4</org.apache.pdfbox.version>
         <!-- https://mvnrepository.com/artifact/io.sentry/sentry-spring-boot-starter-jakarta -->
         <io.sentry.version>8.0.0</io.sentry.version>
         <!-- https://mvnrepository.com/artifact/org.imgscalr/imgscalr-lib -->
