@@ -12,7 +12,7 @@ Lien du repository Maven : [FunixProductions - Core spring package](https://mvn.
 <parent>
     <groupId>com.funixproductions.core</groupId>
     <artifactId>funixproductions-core</artifactId>
-    <version>1.2.0.0</version>
+    <version>1.2.1.0</version>
 </parent>
 
 <repository>
