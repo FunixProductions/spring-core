@@ -32,7 +32,7 @@
         <com.funixproductions.core.version>1.2.2</com.funixproductions.core.version>
 
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
-        <com.google.guava.version>33.4.5-jre</com.google.guava.version>
+        <com.google.guava.version>33.4.6-jre</com.google.guava.version>
         <!-- https://mvnrepository.com/artifact/org.sonarsource.scanner.maven/sonar-maven-plugin -->
         <org.sonarsource.scanner.maven.version>5.0.0.4389</org.sonarsource.scanner.maven.version>
         <maven.sign.version>3.2.7</maven.sign.version>
