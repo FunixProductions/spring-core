@@ -34,7 +34,7 @@
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <com.google.guava.version>33.4.5-jre</com.google.guava.version>
         <!-- https://mvnrepository.com/artifact/org.sonarsource.scanner.maven/sonar-maven-plugin -->
-        <org.sonarsource.scanner.maven.version>5.0.0.4389</org.sonarsource.scanner.maven.version>
+        <org.sonarsource.scanner.maven.version>5.1.0.4751</org.sonarsource.scanner.maven.version>
         <maven.sign.version>3.2.7</maven.sign.version>
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
         <maven.javadoc.version>3.11.2</maven.javadoc.version>
