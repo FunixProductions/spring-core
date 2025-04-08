@@ -57,7 +57,7 @@
         <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
         <org.apache.pdfbox.version>3.0.4</org.apache.pdfbox.version>
         <!-- https://mvnrepository.com/artifact/io.sentry/sentry-spring-boot-starter-jakarta -->
-        <io.sentry.version>8.6.0</io.sentry.version>
+        <io.sentry.version>8.7.0</io.sentry.version>
         <!-- https://mvnrepository.com/artifact/org.imgscalr/imgscalr-lib -->
         <org.imgscalr-lib.version>4.2</org.imgscalr-lib.version>
     </properties>
