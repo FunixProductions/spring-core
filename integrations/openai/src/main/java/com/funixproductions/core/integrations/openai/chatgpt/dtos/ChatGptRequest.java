@@ -1,5 +1,6 @@
 package com.funixproductions.core.integrations.openai.chatgpt.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,6 +13,9 @@ public class ChatGptRequest {
     private final String model;
 
     private final Collection<Input> input;
+
+    @JsonProperty(value = "max_tokens")
+    private final Integer maxTokens;
 
     @Getter
     @AllArgsConstructor

@@ -50,7 +50,8 @@ class ChatGptServiceTest {
         String result = chatGptService.sendGptRequest(
                 ChatGptModel.GPT_3_5_TURBO,
                 "Developer prompt",
-                "User prompt"
+                "User prompt",
+                100
         );
 
         assertEquals(responseText, result);
@@ -58,7 +59,8 @@ class ChatGptServiceTest {
         result = chatGptService.sendGptRequest(
                 ChatGptModel.GPT_3_5_TURBO,
                 null,
-                "User prompt"
+                "User prompt",
+                100
         );
 
         assertEquals(responseText, result);

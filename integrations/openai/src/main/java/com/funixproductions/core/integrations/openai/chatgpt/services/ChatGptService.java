@@ -32,7 +32,8 @@ public class ChatGptService {
     public String sendGptRequest(
             final @NonNull ChatGptModel model,
             final @Nullable String devPrompt,
-            final @NonNull String prompt
+            final @NonNull String prompt,
+            final @Nullable Integer maxTokens
     ) throws ApiException {
         try {
             final List<ChatGptRequest.Input> inputs = new ArrayList<>();
@@ -43,7 +44,7 @@ public class ChatGptService {
             }
 
             final ChatGptResponse response = this.chatGptClient.sendRequest(
-                    new ChatGptRequest(model.getModel(), inputs),
+                    new ChatGptRequest(model.getModel(), inputs, maxTokens),
                     "Bearer " + this.chatGptConfig.getApiKey()
             );
             final String text = response.getText();
