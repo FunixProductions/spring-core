@@ -14,7 +14,7 @@ public class ChatGptRequest {
 
     private final Collection<Input> input;
 
-    @JsonProperty(value = "max_tokens")
+    @JsonProperty(value = "max_output_tokens")
     private final Integer maxTokens;
 
     @Getter
