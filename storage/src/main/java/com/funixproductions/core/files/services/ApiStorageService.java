@@ -15,10 +15,9 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.imgscalr.Scalr;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,9 +42,6 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         MAPPER extends ApiMapper<ENTITY, DTO>,
         REPOSITORY extends ApiRepository<ENTITY>> extends ApiService<DTO, ENTITY, MAPPER, REPOSITORY> implements StorageCrudClient<DTO> {
 
-    @Autowired
-    private Environment env;
-
     private static final String STORAGE_DIRECTORY = "storage-files";
 
     private final File storageDirectory;
@@ -54,16 +50,20 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
     /**
      * Constructor for storage service
      * @param serviceName the folder inside the storage directory, can't be null or empty
+     * @param baseStorageDirectory the base storage directory, can't be null or empty
      */
-    protected ApiStorageService(final String serviceName,
-                      final REPOSITORY repository,
-                      final MAPPER mapper) {
+    protected ApiStorageService(
+            final @NonNull String serviceName,
+            final @Nullable String baseStorageDirectory,
+            final REPOSITORY repository,
+            final MAPPER mapper
+    ) {
         super(repository, mapper);
 
         if (Strings.isNullOrEmpty(serviceName)) {
             throw new ApiException("Service name cannot be null or empty");
-        } else {
-            this.storageDirectory = this.getStorageDirectory(serviceName);
+        }else {
+            this.storageDirectory = this.getStorageDirectory(baseStorageDirectory, serviceName);
         }
     }
 
@@ -228,8 +228,8 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         }
     }
 
-    private File getStorageDirectory(final String serviceName) {
-        final File baseDirectory = this.getBaseStorageDirectory();
+    private File getStorageDirectory(final @Nullable String baseStorageDirectory, final @NonNull String serviceName) {
+        final File baseDirectory = this.getBaseStorageDirectory(baseStorageDirectory);
         final File storageDirectory = new File(baseDirectory, serviceName);
 
         if (!storageDirectory.exists()) {
@@ -244,9 +244,14 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         }
     }
 
-    private File getBaseStorageDirectory() {
-        final String base = this.env.getProperty("file.storage.base-path", "/container/app");
-        final File storageDirectory = new File(base, STORAGE_DIRECTORY);
+    private File getBaseStorageDirectory(final @Nullable String baseStorageDirectory) {
+        final File storageDirectory;
+
+        if (Strings.isNullOrEmpty(baseStorageDirectory)) {
+            storageDirectory = new File(STORAGE_DIRECTORY);
+        } else {
+            storageDirectory = new File(baseStorageDirectory, STORAGE_DIRECTORY);
+        }
 
         if (!storageDirectory.exists()) {
             if (storageDirectory.mkdir()) {

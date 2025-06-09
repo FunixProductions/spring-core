@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class TestStorageService extends ApiStorageService<TestStorageFileDTO, TestStorageFile, TestStorageMapper, TestStorageRepository> {
 
     public TestStorageService(TestStorageMapper mapper, TestStorageRepository repository) {
-        super("test-storage-service", repository, mapper);
+        super("test-storage-service", null, repository, mapper);
     }
 
 }

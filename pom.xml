@@ -13,7 +13,7 @@
 
     <groupId>com.funixproductions.core</groupId>
     <artifactId>funixproductions-core</artifactId>
-    <version>1.2.6</version>
+    <version>1.2.7</version>
     <name>funixproductions-core</name>
     <description>funixproductions-core for all company projects</description>
     <url>https://github.com/FunixProductions/spring-core</url>
@@ -30,7 +30,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <com.funixproductions.core.version>1.2.6</com.funixproductions.core.version>
+        <com.funixproductions.core.version>1.2.7</com.funixproductions.core.version>
 
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <com.google.guava.version>33.4.8-jre</com.google.guava.version>
@@ -109,7 +109,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>2024.0.0</version>
+                <version>2025.0.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
