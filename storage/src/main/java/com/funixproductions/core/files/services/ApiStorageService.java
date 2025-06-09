@@ -15,6 +15,8 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.imgscalr.Scalr;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -41,6 +43,9 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         MAPPER extends ApiMapper<ENTITY, DTO>,
         REPOSITORY extends ApiRepository<ENTITY>> extends ApiService<DTO, ENTITY, MAPPER, REPOSITORY> implements StorageCrudClient<DTO> {
 
+    @Autowired
+    private Environment env;
+
     private static final String STORAGE_DIRECTORY = "storage-files";
 
     private final File storageDirectory;
@@ -58,7 +63,7 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         if (Strings.isNullOrEmpty(serviceName)) {
             throw new ApiException("Service name cannot be null or empty");
         } else {
-            this.storageDirectory = getStorageDirectory(serviceName);
+            this.storageDirectory = this.getStorageDirectory(serviceName);
         }
     }
 
@@ -124,6 +129,7 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
 
         try {
             final Path filePath = Path.of(fileDto.getFilePath());
+
             resource = new ByteArrayResource(Files.readAllBytes(filePath));
             resourceCache.put(fileId, resource);
             return resource;
@@ -192,7 +198,7 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         fileDto.setFileName(originalFileName);
         fileDto.setFileSize(multipartFile.getSize());
         fileDto.setFileExtension(originalFileName.substring(originalFileName.lastIndexOf(".") + 1));
-        fileDto.setFilePath(file.getPath());
+        fileDto.setFilePath(file.getAbsolutePath());
         fileDto = super.update(fileDto);
 
         try {
@@ -222,8 +228,8 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         }
     }
 
-    private static File getStorageDirectory(final String serviceName) {
-        final File baseDirectory = getBaseStorageDirectory();
+    private File getStorageDirectory(final String serviceName) {
+        final File baseDirectory = this.getBaseStorageDirectory();
         final File storageDirectory = new File(baseDirectory, serviceName);
 
         if (!storageDirectory.exists()) {
@@ -238,8 +244,9 @@ public abstract class ApiStorageService<DTO extends ApiStorageFileDTO,
         }
     }
 
-    private static File getBaseStorageDirectory() {
-        final File storageDirectory = new File(STORAGE_DIRECTORY);
+    private File getBaseStorageDirectory() {
+        final String base = this.env.getProperty("file.storage.base-path", "/container/app");
+        final File storageDirectory = new File(base, STORAGE_DIRECTORY);
 
         if (!storageDirectory.exists()) {
             if (storageDirectory.mkdir()) {
